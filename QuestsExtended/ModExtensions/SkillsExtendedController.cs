@@ -5,9 +5,9 @@ using QuestsExtended.Quests;
 
 namespace QuestsExtended.ModExtensions;
 
-internal class LPQuestController : AbstractCustomQuestController
+internal class SkillsExtendedController : AbstractCustomQuestController
 {
-    public LPQuestController(QuestExtendedController questController)
+    public SkillsExtendedController(QuestExtendedController questController)
         : base(questController)
     {
         QuestEvents.Instance.OnLockInspected += InspectLockHandler;
@@ -19,7 +19,7 @@ internal class LPQuestController : AbstractCustomQuestController
         QuestEvents.Instance.OnHackDoorFailed += HackDoorFailedHandler;
     }
 
-    public void Dispose()
+    public void OnDestroy()
     {
         QuestEvents.Instance.OnLockInspected -= InspectLockHandler;
         QuestEvents.Instance.OnLockPicked -= PickLockHandler;

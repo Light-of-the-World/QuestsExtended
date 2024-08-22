@@ -7,6 +7,7 @@ using EFT.Quests;
 using HarmonyLib;
 using JetBrains.Annotations;
 using QuestsExtended.Models;
+using QuestsExtended.ModExtensions;
 using UnityEngine;
 
 namespace QuestsExtended.Quests;
@@ -23,6 +24,8 @@ internal class QuestExtendedController : MonoBehaviour
 
     private static MedicalQuestController _medController;
     private static PhysicalQuestController _physicalController;
+
+    private static SkillsExtendedController _skillsController;
     
     void Awake()
     {
@@ -31,6 +34,7 @@ internal class QuestExtendedController : MonoBehaviour
         
         _medController = new MedicalQuestController(this);
         _physicalController = new PhysicalQuestController(this);
+        _skillsController = new SkillsExtendedController(this);
         
         if (UnderlyingQuestControllerClassName == null)
         {
@@ -59,6 +63,7 @@ internal class QuestExtendedController : MonoBehaviour
     {
         _medController.OnDestroy();
         _physicalController.OnDestroy();
+        _skillsController.OnDestroy();
     }
 
     private void Update()
