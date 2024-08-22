@@ -29,6 +29,7 @@ public class Plugin : BaseUnityPlugin
         Log = Logger;
         
         RE.CacheTypes();
+        ConfigManager.InitConfig(Config);
         
         new OnGameStartedPatch().Enable();
         new QuestClassPatch().Enable();
