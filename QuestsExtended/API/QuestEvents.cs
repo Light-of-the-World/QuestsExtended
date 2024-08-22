@@ -66,6 +66,26 @@ public sealed class QuestEvents
         OnBreakLock(sender, e);
     }
     
+    public event RepairLockHandler OnRepairLock;
+    public delegate void RepairLockHandler(object sender, EventArgs e); 
+    
+    public void OnRepairLockEvent(object sender, EventArgs e)
+    {
+        if (OnRepairLock is null) return;
+        
+        OnRepairLock(sender, e);
+    }
+    
+    public event RepairLockFailedHandler OnRepairLockFailed;
+    public delegate void RepairLockFailedHandler(object sender, EventArgs e); 
+    
+    public void OnRepairLockFailedEvent(object sender, EventArgs e)
+    {
+        if (OnRepairLock is null) return;
+        
+        OnRepairLock(sender, e);
+    }
+    
     public event HackDoorEventHandler OnHackDoor;
     public delegate void HackDoorEventHandler(object sender, EventArgs e); 
     

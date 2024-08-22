@@ -13,12 +13,13 @@ public class ConfigManager
         EnableProgressNotifications = config.Bind(
             "Progress Notifications", 
             "Enable Notifications",
-            true);
+            true,
+            new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 10 }));
         
         ProgressNotificationDuration = config.Bind(
             "Progress Notifications", 
             "Duration of popup",
             ENotificationDurationType.Default,
-            "How long a notification remains on your screen. These are BSG values.");
+            new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 9 }));
     }
 }

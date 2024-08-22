@@ -9,7 +9,7 @@ using SPT.Reflection.Patching;
 
 namespace QuestsExtended.Patches;
 
-public class QuestClassPatch : ModulePatch
+public class SetConditionCurrentValuePatch : ModulePatch
 {
     protected override MethodBase GetTargetMethod()
     {

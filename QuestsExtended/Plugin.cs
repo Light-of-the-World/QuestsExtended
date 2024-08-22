@@ -32,7 +32,7 @@ public class Plugin : BaseUnityPlugin
         ConfigManager.InitConfig(Config);
         
         new OnGameStartedPatch().Enable();
-        new QuestClassPatch().Enable();
+        new SetConditionCurrentValuePatch().Enable();
     }
 
     private void Start()
