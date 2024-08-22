@@ -2,6 +2,7 @@
 using System.Linq;
 using Comfort.Common;
 using EFT;
+using QuestsExtended.Models;
 using UnityEngine;
 
 namespace QuestsExtended.Quests;

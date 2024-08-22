@@ -90,18 +90,18 @@ internal class QuestExtendedController : MonoBehaviour
             }
             
             // Grab all custom conditions for our location
-            var customConditions = questRespCond
+            var activeOnLocation = questRespCond
                 .Where(cond => cond.Locations is not null && cond.Locations
                     .Any(loc => loc == _player.Location || loc == "any"));
             
-            if (!customConditions.Any())
+            if (!activeOnLocation.Any())
             {
                 Plugin.Log.LogWarning($"Custom Condition is null for `{quest.Id.LocalizedName()}`");
                 continue;
             }
 
             // Make sure if there are conditions both specific to this map and across any map that we increment all of them
-            foreach (var condition in customConditions)
+            foreach (var condition in activeOnLocation)
             {
                 var bsgCondition = GetBsgConditionById(quest.Id, condition.ConditionId);
                 
@@ -216,11 +216,4 @@ internal class QuestExtendedController : MonoBehaviour
         return _questController?.Quests?
             .FirstOrDefault(x => x is not null && x.Id == questId);
     }
-}
-
-public class ConditionPair
-{
-    public QuestClass Quest;
-    public Condition Condition;
-    public CustomCondition CustomCondition;
 }

@@ -2,9 +2,15 @@
 using System.Linq;
 using EFT.HealthSystem;
 using HarmonyLib;
+using SPT.Reflection.Utils;
 
 namespace QuestsExtended.Utils;
 
+
+/// <summary>
+/// Class to assist with getting obfuscated types at runtime 
+/// </summary>
+/// <exception cref="MemberNotFoundException"></exception>
 public static class RE
 {
     public static Type BleedType;
@@ -21,41 +27,39 @@ public static class RE
     public static Type SprintType;
     public static Type BreachDoorType;
     
-    static RE()
+    public static void CacheTypes()
     {
-        BleedType = AccessTools.Inner(typeof(ActiveHealthController), "LightBleeding");
+        BleedType = AccessTools.Inner(typeof(ActiveHealthController), "Bleeding");
         LightBleedType = AccessTools.Inner(typeof(ActiveHealthController), "LightBleeding");
         HeavyBleedType = AccessTools.Inner(typeof(ActiveHealthController), "HeavyBleeding");
         FractureType = AccessTools.Inner(typeof(ActiveHealthController), "Fracture");
         PainType = AccessTools.Inner(typeof(ActiveHealthController), "Pain");
         MedEffectType = AccessTools.Inner(typeof(ActiveHealthController), "MedEffect");
-        StimulatorType = AccessTools.Inner(typeof(ActiveHealthController), "MedEffect");
+        StimulatorType = AccessTools.Inner(typeof(ActiveHealthController), "Stimulator");
 
-        JumpType = AccessTools.AllTypes()
-            .SingleOrDefault(t => t.GetMethods()
-                .FirstOrDefault(m => m.Name == "ApplyMovementAndRotation") is not null);
+        JumpType = PatchConstants.EftTypes
+            .FirstOrDefault(t => t.GetMethod("ApplyMovementAndRotation") is not null);
         
-        IdleType = AccessTools.AllTypes()
+        IdleType = PatchConstants.EftTypes
             .SingleOrDefault(t => t.GetFields()
                 .FirstOrDefault(m => m.Name == "gclass683_0") is not null);
         
-        RunType = AccessTools.AllTypes()
-            .SingleOrDefault(t => t.GetMethods()
-                .FirstOrDefault(m => m.Name == "HasNoInputForLongTime") is not null);
+        RunType = PatchConstants.EftTypes
+            .FirstOrDefault(t => t.GetMethod("HasNoInputForLongTime") is not null);
         
-        SprintType = AccessTools.AllTypes()
-            .SingleOrDefault(t => t.GetMethods()
-                .FirstOrDefault(m => m.Name == "ChangeSpeed") is not null && 
-                                  t.GetFields().SingleOrDefault(f => f.Name == "StationaryWeapon") is null);
+        SprintType = PatchConstants.EftTypes
+            .FirstOrDefault(t => t.GetMethod("ChangeSpeed") is not null 
+                                 && t.GetField("StationaryWeapon") is null);
         
-        BreachDoorType = AccessTools.AllTypes()
-            .SingleOrDefault(t => t.GetMethods()
-                .FirstOrDefault(m => m.Name == "ExecuteDoorInteraction") is not null && 
-                                  t.GetFields().SingleOrDefault(f => f.Name == "KickTime") is not null);
+        BreachDoorType = PatchConstants.EftTypes
+            .FirstOrDefault(t => t.GetMethod("ExecuteDoorInteraction") is not null 
+                                 && t.GetField("KickTime") is not null);
         
-        if (BreachDoorType is null || SprintType is null || RunType is null)
+        if (BleedType is null || FractureType is null || StimulatorType is null)
         {
             throw new MemberNotFoundException("Could not find HealthController nested types");
         }
+        
+        Plugin.Log.LogError("Cached Reflection Objects");
     }
 }
