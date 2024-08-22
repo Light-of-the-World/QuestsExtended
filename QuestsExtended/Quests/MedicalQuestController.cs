@@ -19,7 +19,7 @@ internal class MedicalQuestController
         _player.ActiveHealthController.DiedEvent += HandleDie;
     }
     
-    public void Dispose()
+    public void OnDestroy()
     {
         _player.ActiveHealthController.EffectRemovedEvent -= HandleRemoveHealthCondition;
         _player.ActiveHealthController.HealthChangedEvent -= HandleHealthChange;

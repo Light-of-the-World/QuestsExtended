@@ -2,12 +2,13 @@
 using System.Linq;
 using Comfort.Common;
 using EFT;
+using UnityEngine;
 
 namespace QuestsExtended.Quests;
 
 internal abstract class AbstractCustomQuestController
 {
-    protected QuestExtendedController _questController;
+    protected static QuestExtendedController _questController;
     protected Player _player;
 
     protected AbstractCustomQuestController(QuestExtendedController questExtendedController)
@@ -38,7 +39,7 @@ internal abstract class AbstractCustomQuestController
     /// </summary>
     /// <param name="conditions"></param>
     /// /// <param name="value"></param>
-    protected void IncrementConditions(List<ConditionPair> conditions, float value = 0f)
+    protected static void IncrementConditions(List<ConditionPair> conditions, float value = 0f)
     {
         foreach (var condition in conditions)
         {
@@ -51,7 +52,7 @@ internal abstract class AbstractCustomQuestController
     /// </summary>
     /// <param name="condition"></param>
     /// <param name="value"></param>
-    protected void IncrementCondition(ConditionPair condition, float value = 0f)
+    protected static void IncrementCondition(ConditionPair condition, float value = 0f)
     {
         _questController.IncrementConditionCounter(condition.Quest, condition.Condition, value);
     }

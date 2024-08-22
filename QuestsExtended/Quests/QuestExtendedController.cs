@@ -57,11 +57,13 @@ internal class QuestExtendedController : MonoBehaviour
 
     private void OnDestroy()
     {
-        _medController.Dispose();
+        _medController.OnDestroy();
+        _physicalController.OnDestroy();
     }
 
     private void Update()
     {
+        _physicalController.Update();
     }
 
     /// <summary>

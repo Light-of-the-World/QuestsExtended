@@ -18,4 +18,6 @@ public enum EQuestCondition
     DestroyBodyPart,
     RestoreBodyPart,
     Die,
+    EncumberedTime,
+    OverEncumberedTime
 }
