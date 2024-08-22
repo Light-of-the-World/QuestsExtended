@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using Comfort.Common;
 using EFT;
+using HarmonyLib;
 using QuestsExtended.Models;
 using UnityEngine;
 
@@ -43,6 +45,14 @@ internal class PhysicalQuestController
             isOverEncumbered = true;
             StaticManager.BeginCoroutine(OverEncumberedTimer());
         }
+
+        var states = (Dictionary<EPlayerState, BaseMovementState>)AccessTools.Field(typeof(MovementContext), "_states")
+            .GetValue(Singleton<GameWorld>.Instance.MainPlayer.MovementContext);
+
+        foreach (var state in states)
+        {
+            Plugin.Log.LogError($"State {state.Key} : {state.Value.GetType().Name}");
+        }
     }
     
     public void OnDestroy()
@@ -81,8 +91,6 @@ internal class PhysicalQuestController
     private static IEnumerator EncumberedTimer()
     {
         var conditions = _questController.GetActiveConditions(EQuestCondition.EncumberedTimeInSeconds);
-        
-        Plugin.Log.LogWarning($"Count: {conditions.Count}");
         
         if (conditions.Count == 0) yield return null;
         

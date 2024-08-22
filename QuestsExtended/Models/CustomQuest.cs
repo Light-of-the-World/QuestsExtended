@@ -17,6 +17,7 @@ public struct CustomCondition
     // Quest to search for the condition on
     public string ConditionId;
     public EQuestCondition ConditionType;
+    [CanBeNull] public bool RequireMoving;
     [CanBeNull] public List<string> Locations;
     [CanBeNull] public List<string> AllowedItems;
     [CanBeNull] public List<string> ForbiddenItems;
