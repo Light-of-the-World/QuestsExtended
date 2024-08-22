@@ -1,0 +1,91 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net471</TargetFramework>
+        <AssemblyName>QuestsExtended</AssemblyName>
+        <Description>New Quest Conditions!</Description>
+        <Version>1.0.0</Version>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <LangVersion>latest</LangVersion>
+        <Configurations>Debug;Release;BETA</Configurations>
+        <RootNamespace>$(MSBuildProjectName.Replace(" ", ""))</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Reference Include="0Harmony">
+            <HintPath>..\..\..\BepinEx\Core\0Harmony.dll</HintPath>
+        </Reference>
+        <Reference Include="Spt.Common">
+            <HintPath>..\..\..\BepinEx\Plugins\spt\SPT-Common.dll</HintPath>
+        </Reference>
+        <Reference Include="SPT.Reflection">
+            <HintPath>..\..\..\BepinEx\Plugins\spt\SPT-Reflection.dll</HintPath>
+        </Reference>
+        <Reference Include="AnimationSystem.Types">
+            <HintPath>..\..\..\EscapeFromTarkov_data\managed\AnimationSystem.Types.dll</HintPath>
+        </Reference>
+        <Reference Include="Assembly-CSharp">
+            <HintPath>..\..\..\BepInEx\DumpedAssemblies\EscapeFromTarkov\Assembly-CSharp.dll</HintPath>
+        </Reference>
+        <Reference Include="BepInEx">
+            <HintPath>..\..\..\BepinEx\Core\BepInEx.dll</HintPath>
+        </Reference>
+        <Reference Include="bsg.console.core">
+            <HintPath>..\..\..\EscapeFromTarkov_Data\managed\bsg.console.core.dll</HintPath>
+        </Reference>
+        <Reference Include="Comfort">
+            <HintPath>..\..\..\EscapeFromTarkov_Data\managed\Comfort.dll</HintPath>
+        </Reference>
+        <Reference Include="ItemComponent.Types">
+            <HintPath>..\..\..\EscapeFromTarkov_Data\managed\ItemComponent.Types.dll</HintPath>
+        </Reference>
+        <Reference Include="Newtonsoft.Json">
+            <HintPath>..\..\..\EscapeFromTarkov_Data\managed\Newtonsoft.Json.dll</HintPath>
+        </Reference>
+        <Reference Include="Sirenix.Serialization">
+            <HintPath>..\..\..\EscapeFromTarkov_Data\managed\Sirenix.Serialization.dll</HintPath>
+        </Reference>
+        <Reference Include="Unity.TextMeshPro">
+            <HintPath>..\..\..\EscapeFromTarkov_Data\managed\Unity.TextMeshPro.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine">
+            <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.AnimationModule">
+            <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.AnimationModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.InputLegacyModule">
+            <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.InputLegacyModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.AssetBundleModule">
+            <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.AssetBundleModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.AudioModule">
+            <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.AudioModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule">
+            <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.CoreModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.IMGUIModule">
+            <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.IMGUIModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.TextRenderingModule">
+            <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.TextRenderingModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.UI">
+            <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.UI.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.AnimationModule">
+            <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.AnimationModule.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Properties\" />
+    </ItemGroup>
+
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+      <Exec Command="copy &quot;$(TargetPath)&quot; &quot;..\..\..\BepInEx\plugins\QuestsExtended\$(TargetName).dll&quot;&#xA;if $(ConfigurationName) == Debug (&#xA;    copy &quot;$(ProjectDir)$(OutDir)$(TargetName).pdb&quot; &quot;..\..\..\BepInEx\plugins\QuestsExtended\$(TargetName).pdb&quot;&#xA;) else (&#xA;    del &quot;..\..\..\BepInEx\plugins\QuestsExtended\$(TargetName).pdb&quot;&#xA;)&#xA;&#xA;del &quot;..\..\..\BepInEx\config\com.dirtbikercj.QuestsExtended.cfg&quot;" />
+    </Target>
+    
+</Project>
