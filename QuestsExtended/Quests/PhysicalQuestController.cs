@@ -20,7 +20,7 @@ internal class PhysicalQuestController
     
     private static bool isOverEncumbered;
     private static bool isOverEncumberedRunning;
-    
+
     public PhysicalQuestController(QuestExtendedController questExtendedController)
         : base(questExtendedController)
     {
@@ -29,7 +29,7 @@ internal class PhysicalQuestController
 
         _physical.EncumberedChanged += SetEncumbered;
         _physical.OverEncumberedChanged += SetOverEncumbered;
-        
+
         // Flag for encumbered
         if (_physical.Boolean_0)
         {
@@ -37,7 +37,7 @@ internal class PhysicalQuestController
             isEcumbered = true;
             StaticManager.BeginCoroutine(EncumberedTimer());
         }
-        
+
         // Flag for over encumbered
         if (_physical.Overweight >= 1f)
         {
@@ -45,16 +45,8 @@ internal class PhysicalQuestController
             isOverEncumbered = true;
             StaticManager.BeginCoroutine(OverEncumberedTimer());
         }
-
-        var states = (Dictionary<EPlayerState, BaseMovementState>)AccessTools.Field(typeof(MovementContext), "_states")
-            .GetValue(Singleton<GameWorld>.Instance.MainPlayer.MovementContext);
-
-        foreach (var state in states)
-        {
-            Plugin.Log.LogError($"State {state.Key} : {state.Value.GetType().Name}");
-        }
     }
-    
+
     public void OnDestroy()
     {
         _physical.EncumberedChanged -= SetEncumbered;

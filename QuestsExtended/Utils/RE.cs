@@ -60,6 +60,6 @@ public static class RE
             throw new MemberNotFoundException("Could not find HealthController nested types");
         }
         
-        Plugin.Log.LogError("Cached Reflection Objects");
+        Plugin.Log.LogInfo("Cached Reflection Objects");
     }
 }
