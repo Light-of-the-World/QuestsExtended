@@ -80,7 +80,7 @@ internal class PhysicalQuestController
 
     private static IEnumerator EncumberedTimer()
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.EncumberedTime);
+        var conditions = _questController.GetActiveConditions(EQuestCondition.EncumberedTimeInSeconds);
         
         Plugin.Log.LogWarning($"Count: {conditions.Count}");
         
@@ -103,7 +103,7 @@ internal class PhysicalQuestController
     
     private static IEnumerator OverEncumberedTimer()
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.OverEncumberedTime);
+        var conditions = _questController.GetActiveConditions(EQuestCondition.OverEncumberedTimeInSeconds);
 
         if (conditions.Count == 0) yield return null;
         
