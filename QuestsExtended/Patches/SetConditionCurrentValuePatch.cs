@@ -21,9 +21,10 @@ public class SetConditionCurrentValuePatch : ModulePatch
     private static void Postfix(IConditionCounter conditional, EQuestStatus status, Condition condition, float value, bool notify)
     {
         if (!ConfigManager.EnableProgressNotifications.Value) return;
+        if (value > condition.value) return;
         
         NotificationManagerClass.DisplayMessageNotification(
-            $"Progress updated on {condition.id.Localized()} to {value:F1}",
+            $"{condition.id.Localized()} progress updated {value:F1}/{condition.value}",
             ConfigManager.ProgressNotificationDuration.Value,
             ENotificationIconType.Quest);
         

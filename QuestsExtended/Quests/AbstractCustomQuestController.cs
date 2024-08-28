@@ -29,8 +29,6 @@ internal abstract class AbstractCustomQuestController
         var pass = IsInZone(condition) 
                    && BodyPartIncludeCheck(condition, bodyPart) 
                    && !BodyPartExcludeCheck(condition, bodyPart);
-
-        Plugin.Log.LogFatal(pass);
         
         return pass;
     }
@@ -84,9 +82,6 @@ internal abstract class AbstractCustomQuestController
         // Condition passes because it doesn't exist
         if (condition.CustomCondition.IncludeBodyParts is null) 
             return true;
-        
-        Plugin.Log.LogWarning(condition.CustomCondition.IncludeBodyParts.Contains(partToCheckFor));
-        Plugin.Log.LogWarning(partToCheckFor);
         
         return condition.CustomCondition.IncludeBodyParts.Contains(partToCheckFor);
     }
