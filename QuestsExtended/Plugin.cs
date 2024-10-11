@@ -11,7 +11,7 @@ using QuestsExtended.Utils;
 
 namespace QuestsExtended;
 
-[BepInPlugin("com.dirtbikercj.QuestsExtended", "Quests Extended", "1.0.1")]
+[BepInPlugin("com.dirtbikercj.QuestsExtended", "Quests Extended", "1.0.2")]
 public class Plugin : BaseUnityPlugin
 {
     internal const int TarkovVersion = 30626;
@@ -32,7 +32,7 @@ public class Plugin : BaseUnityPlugin
         ConfigManager.InitConfig(Config);
         
         new OnGameStartedPatch().Enable();
-        new SetConditionCurrentValuePatch().Enable();
+        // new SetConditionCurrentValuePatch().Enable();
     }
 
     private void Start()
