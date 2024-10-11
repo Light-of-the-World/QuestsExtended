@@ -16,18 +16,18 @@ public class ConfigManager
             "Progress Notifications", 
             "Enable Notifications",
             true,
-            new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 10 }));
+            new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 0 }));
         
         ProgressNotificationDuration = config.Bind(
             "Progress Notifications", 
             "Duration of popup",
             ENotificationDurationType.Default,
-            new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 9 }));
+            new ConfigDescription("", null, new ConfigurationManagerAttributes { Order = 1 }));
         
         DumpQuestZones = config.Bind(
             "Development", 
             "Dump Quest Zones",
             false,
-            new ConfigDescription("Requires loading into each map to log them to the Bepinex output.", null, new ConfigurationManagerAttributes { Order = 8 }));
+            new ConfigDescription("Requires loading into each map to log them to the Bepinex output.", null, new ConfigurationManagerAttributes { Order = 2 }));
     }
 }
