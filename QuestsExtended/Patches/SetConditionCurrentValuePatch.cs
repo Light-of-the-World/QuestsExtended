@@ -13,7 +13,7 @@ public class SetConditionCurrentValuePatch : ModulePatch
 {
     protected override MethodBase GetTargetMethod()
     {
-        return PatchConstants.EftTypes.FirstOrDefault(t => t.GetEvent("OnConditionQuestTimeExpired") != null)
+        return PatchConstants.EftTypes.SingleCustom(t => t.GetEvent("OnConditionQuestTimeExpired") != null)
             .GetMethod("SetConditionCurrentValue");
     }
 
