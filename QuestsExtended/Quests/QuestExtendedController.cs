@@ -90,7 +90,7 @@ internal class QuestExtendedController : MonoBehaviour
 
             if (questRespCond is null)
             {
-                Plugin.Log.LogDebug($"Skipping quest {quest.Id.LocalizedName()} : No {conditionType} condition");
+                Plugin.Log.LogDebug($"Skipping quest {quest.Id} : No {conditionType} condition");
                 continue;
             }
             
@@ -101,7 +101,7 @@ internal class QuestExtendedController : MonoBehaviour
             
             if (!activeOnLocation.Any())
             {
-                Plugin.Log.LogWarning($"Custom Condition is null for `{quest.Id.LocalizedName()}`");
+                Plugin.Log.LogWarning($"Custom Condition is null for `{quest.Id}`");
                 continue;
             }
 
@@ -191,7 +191,7 @@ internal class QuestExtendedController : MonoBehaviour
             }
         }
 
-        Plugin.Log.LogWarning($"Could not find condition `{conditionId}` on quest `{questId.LocalizedName()}`");
+        Plugin.Log.LogWarning($"Could not find condition `{conditionId}` on quest `{questId}`");
         return null;
     }
 

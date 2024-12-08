@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Security.Policy;
 using EFT;
 using EFT.Interactive;
+using EFT.Quests;
 using HarmonyLib;
 using QuestsExtended.Quests;
 using QuestsExtended.Utils;
@@ -33,7 +34,7 @@ internal class OnGameStartedPatch : ModulePatch
     {
         var zones = Object.FindObjectsOfType<TriggerWithId>();
 
-        foreach (var zone in zones.Where(z => z is QuestTrigger || z is PlaceItemTrigger))
+        foreach (var zone in zones.Where(z => z is QuestTrigger || z is PlaceItemTrigger || z is ExperienceTrigger))
         {
             Plugin.Log.LogInfo($"ZoneId: {zone.Id} Position: {zone.transform.position.ToString()} Type: {zone.GetType()}");
         }

@@ -11,10 +11,10 @@ using QuestsExtended.Utils;
 
 namespace QuestsExtended;
 
-[BepInPlugin("com.dirtbikercj.QuestsExtended", "Quests Extended", "1.0.2")]
+[BepInPlugin("com.dirtbikercj.QuestsExtended", "Quests Extended", "1.1.0")]
 public class Plugin : BaseUnityPlugin
 {
-    internal const int TarkovVersion = 30626;
+    internal const int TarkovVersion = 33420;
     internal static ManualLogSource Log;
 
     internal static Dictionary<string, CustomQuest> Quests { get; private set; } = [];

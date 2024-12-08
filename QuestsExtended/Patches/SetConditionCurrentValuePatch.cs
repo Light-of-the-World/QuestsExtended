@@ -1,8 +1,6 @@
-﻿using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using EFT.Communications;
 using EFT.Quests;
-using HarmonyLib;
 using QuestsExtended.Utils;
 using SPT.Reflection.Utils;
 using SPT.Reflection.Patching;
@@ -24,10 +22,10 @@ public class SetConditionCurrentValuePatch : ModulePatch
         if (value > condition.value) return;
         
         NotificationManagerClass.DisplayMessageNotification(
-            $"{condition.id.Localized()} progress updated {value:F1}/{condition.value}",
+            $"{condition.id.LocalizedName()} progress updated {value:F1}/{condition.value}",
             ConfigManager.ProgressNotificationDuration.Value,
             ENotificationIconType.Quest);
         
-        Plugin.Log.LogDebug($"Incrementing {condition.id.Localized()} by {value}");
+        Plugin.Log.LogDebug($"Incrementing {condition.id.LocalizedName()} by {value}");
     }
 }

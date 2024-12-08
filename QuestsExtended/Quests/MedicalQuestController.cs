@@ -49,7 +49,7 @@ internal class MedicalQuestController
         }
     }
 
-    private void HandleHealthChange(EBodyPart bodyPart, float change, DamageInfo damage)
+    private void HandleHealthChange(EBodyPart bodyPart, float change, DamageInfoStruct damage)
     {
         if (change.Positive())
         {
@@ -95,7 +95,7 @@ internal class MedicalQuestController
         }
     }
 
-    private void HandleHealthLoss(EBodyPart bodyPart, float change, DamageInfo damage)
+    private void HandleHealthLoss(EBodyPart bodyPart, float change, DamageInfoStruct damage)
     {
         var conditions = _questController.GetActiveConditions(EQuestCondition.HealthLoss);
         
@@ -106,7 +106,7 @@ internal class MedicalQuestController
         }
     }
 
-    private void HandleHealthGain(EBodyPart bodyPart, float change, DamageInfo damage)
+    private void HandleHealthGain(EBodyPart bodyPart, float change, DamageInfoStruct damage)
     {
         var conditions = _questController.GetActiveConditions(EQuestCondition.HealthGain);
 
