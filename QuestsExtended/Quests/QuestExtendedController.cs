@@ -92,7 +92,7 @@ internal class QuestExtendedController : MonoBehaviour
             
             if (questRespCond is null)
             {
-                Plugin.Log.LogDebug($"Skipping quest {quest.Id} : No {conditionType} condition");
+                Plugin.Log.LogWarning($"Skipping quest {quest.Id} : No {conditionType} condition");
                 continue;
             }
 
@@ -100,6 +100,7 @@ internal class QuestExtendedController : MonoBehaviour
 
             foreach (var cond in questRespCond)
             {
+                if ((conditionType & cond.ConditionType) == 0) continue;
                 if (cond.Locations != null)
                 {
                     foreach (var loc in cond.Locations)
@@ -112,13 +113,6 @@ internal class QuestExtendedController : MonoBehaviour
                     }
                 }
             }
-            /*
-            if (!activeOnLocation.Any())
-            {
-                Plugin.Log.LogWarning($"Custom Condition is null for `{quest.Id}`");
-                continue;
-            }
-            */
             // Make sure if there are conditions both specific to this map and across any map that we increment all of them
             foreach (var condition in activeOnLocation)
             {
@@ -235,7 +229,7 @@ internal class QuestExtendedController : MonoBehaviour
 
         foreach (var cond in quest.Conditions)
         {
-            if (cond.ConditionType == conditionType)
+            if ((conditionType & cond.ConditionType) != 0)
             {
                 customConditions.Add(cond);
             }

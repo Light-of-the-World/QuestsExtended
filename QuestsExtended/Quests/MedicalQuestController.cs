@@ -75,7 +75,7 @@ internal class MedicalQuestController
     
     private void HandleRemoveLightBleed(IEffect effect)
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.FixLightBleed);
+        var conditions = _questController.GetActiveConditions(EQuestCondition.FixLightBleed | EQuestCondition.FixAnyBleed);
         
         foreach (var condition in conditions)
         {

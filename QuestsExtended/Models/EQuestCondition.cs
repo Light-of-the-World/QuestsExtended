@@ -1,35 +1,27 @@
-﻿namespace QuestsExtended.Models;
+﻿using System;
 
+namespace QuestsExtended.Models;
+
+[Flags]
 public enum EQuestCondition
 {
-    /*
-    InspectLock,
-    PickLock,
-    PickLockFailed,
-    RepairLock,
-    RepairLockFailed,
-    BreakLock,
-    HackDoor,
-    HackDoorFailed,
-    */
-    FixLightBleed,
-    FixHeavyBleed,
-    FixFracture,
-    HealthLoss,
-    HealthGain,
-    DestroyBodyPart,
-    RestoreBodyPart,
-    Die,
-    EncumberedTimeInSeconds,
-    OverEncumberedTimeInSeconds,
-    //All below this line have been added by Light. SE = Self Explanitory
-    FixAnyBleed, //Combines Light and Heavy bleed
-    MoveDistance, //SE
-    MoveDistanceWhileCrouched, //I will need to look into how the game decides what is and isn't 'crouched'
-    MoveDistanceWhileProne, //SE
-    MoveDistanceWhileSilent, //Moving slow enough to earn Covert Movement xp
-    KillWhileADS, //SE
-    KillWhileProne, //SE
-    SearchContainer, //SE
-    LootItem,  //SE
+    FixLightBleed = 1 << 0,
+    FixHeavyBleed = 1 << 1,
+    FixAnyBleed = 1 << 2,
+    FixFracture = 1 << 3,
+    HealthLoss = 1 << 4,
+    HealthGain = 1 << 5,
+    DestroyBodyPart = 1 << 6,
+    RestoreBodyPart = 1 << 7,
+    Die = 1 << 8,
+    EncumberedTimeInSeconds = 1 << 9,
+    OverEncumberedTimeInSeconds = 1 << 10,
+    MoveDistance = 1 << 11,
+    MoveDistanceWhileCrouched = 1 << 12,
+    MoveDistanceWhileProne = 1 << 13,
+    MoveDistanceWhileSilent = 1 << 14,
+    KillWhileADS = 1 << 15,
+    KillWhileProne = 1 << 16,
+    SearchContainer = 1 << 17,
+    LootItem = 1 << 18,
 }
