@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Comfort.Common;
 using EFT;
@@ -7,7 +7,6 @@ using EFT.Quests;
 using HarmonyLib;
 using JetBrains.Annotations;
 using QuestsExtended.Models;
-using QuestsExtended.ModExtensions;
 using UnityEngine;
 
 namespace QuestsExtended.Quests;
@@ -24,32 +23,34 @@ internal class QuestExtendedController : MonoBehaviour
 
     private static MedicalQuestController _medController;
     private static PhysicalQuestController _physicalController;
-
-    private static SkillsExtendedController _skillsController;
-    
     void Awake()
     {
         _player = Singleton<GameWorld>.Instance.MainPlayer;
         _questController = _player?.AbstractQuestControllerClass;
-        
+
         _medController = new MedicalQuestController(this);
         _physicalController = new PhysicalQuestController(this);
-        _skillsController = new SkillsExtendedController(this);
-        
+
         if (UnderlyingQuestControllerClassName == null)
         {
-            var type = AccessTools.GetTypesFromAssembly(typeof(AbstractGame).Assembly)
-                .SingleOrDefault(t => t.GetEvent(
-                    "OnConditionQuestTimeExpired", 
-                    BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance) != null);
-                
-            if (type == null)
+            Type foundType = null;
+
+            foreach (var type in AccessTools.GetTypesFromAssembly(typeof(AbstractGame).Assembly))
+            {
+                if (type.GetEvent("OnConditionQuestTimeExpired", BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance) != null)
+                {
+                    foundType = type;
+                    break;
+                }
+            }
+
+            if (foundType == null)
             {
                 Plugin.Log.LogError("Failed to locate a specific quest controller type");
                 return;
             }
 
-            UnderlyingQuestControllerClassName = type.Name.Split('`')[0];
+            UnderlyingQuestControllerClassName = foundType.Name.Split('`')[0];
             Plugin.Log.LogDebug($"Resolved {nameof(UnderlyingQuestControllerClassName)} to be {UnderlyingQuestControllerClassName}");
         }
 
@@ -59,11 +60,11 @@ internal class QuestExtendedController : MonoBehaviour
         }
     }
 
+
     private void OnDestroy()
     {
         _medController.OnDestroy();
         _physicalController.OnDestroy();
-        _skillsController.OnDestroy();
     }
 
     private void Update()
@@ -78,33 +79,46 @@ internal class QuestExtendedController : MonoBehaviour
     public List<ConditionPair> GetActiveConditions(EQuestCondition conditionType)
     {
         var quests = GetActiveQuests();
-        
+
         // No quests, return empty
-        if (!quests.Any()) return [];
+        using var enumerator = quests.GetEnumerator();
+        if (!enumerator.MoveNext()) return [];
 
         List<ConditionPair> pairs = [];
         
         foreach (var quest in quests)
         {
             var questRespCond = GetCustomConditionsByCondition(quest.Id, conditionType);
-
+            
             if (questRespCond is null)
             {
                 Plugin.Log.LogDebug($"Skipping quest {quest.Id} : No {conditionType} condition");
                 continue;
             }
-            
-            // Grab all custom conditions for our location
-            var activeOnLocation = questRespCond
-                .Where(cond => cond.Locations is not null && cond.Locations
-                    .Any(loc => loc == _player.Location || loc == "any"));
-            
+
+            List<CustomCondition> activeOnLocation = [];
+
+            foreach (var cond in questRespCond)
+            {
+                if (cond.Locations != null)
+                {
+                    foreach (var loc in cond.Locations)
+                    {
+                        if (loc == _player.Location || loc == "any")
+                        {
+                            activeOnLocation.Add(cond);
+                            break; // No need to check more locations once a match is found
+                        }
+                    }
+                }
+            }
+            /*
             if (!activeOnLocation.Any())
             {
                 Plugin.Log.LogWarning($"Custom Condition is null for `{quest.Id}`");
                 continue;
             }
-
+            */
             // Make sure if there are conditions both specific to this map and across any map that we increment all of them
             foreach (var condition in activeOnLocation)
             {
@@ -157,12 +171,18 @@ internal class QuestExtendedController : MonoBehaviour
     /// <returns></returns>
     private IEnumerable<QuestClass> GetActiveQuests()
     {
-        var activeQuests = _questController.Quests
-            .Where(q => q.QuestStatus == EQuestStatus.Started)
-            .Where(q => _questsWithCustomConditions.Contains(q.Id));
-        
-        Plugin.Log.LogDebug($"Custom conditions active: {activeQuests.Any()}");
-        
+        List<QuestClass> activeQuests = [];
+
+        foreach (var quest in _questController.Quests)
+        {
+            if (quest.QuestStatus == EQuestStatus.Started && _questsWithCustomConditions.Contains(quest.Id))
+            {
+                activeQuests.Add(quest);
+            }
+        }
+
+        Plugin.Log.LogDebug($"Custom conditions active: {activeQuests.Count > 0}");
+
         return activeQuests;
     }
     
@@ -176,18 +196,20 @@ internal class QuestExtendedController : MonoBehaviour
     private Condition GetBsgConditionById(string questId, string conditionId)
     {
         var quest = GetQuestById(questId);
-        
+
         if (quest is null) return null;
         if (quest.QuestStatus != EQuestStatus.Started) return null;
 
         foreach (var gclass in quest.Conditions)
         {
             var conditions = gclass.Value.IEnumerable_0;
-            var condition = conditions.FirstOrDefault(cond => cond.id == conditionId);
 
-            if (condition is not null)
+            foreach (var condition in conditions)
             {
-                return condition;
+                if (condition.id == conditionId)
+                {
+                    return condition;
+                }
             }
         }
 
@@ -208,17 +230,33 @@ internal class QuestExtendedController : MonoBehaviour
         {
             return null;
         }
-        
-        var customConditions = quest.Conditions
-            .Where(cond => cond.ConditionType == conditionType);
-            
+
+        List<CustomCondition> customConditions = [];
+
+        foreach (var cond in quest.Conditions)
+        {
+            if (cond.ConditionType == conditionType)
+            {
+                customConditions.Add(cond);
+            }
+        }
+
         return customConditions;
     }
     
     [CanBeNull]
     private QuestClass GetQuestById(string questId)
     {
-        return _questController?.Quests?
-            .FirstOrDefault(x => x is not null && x.Id == questId);
+        if (_questController?.Quests == null) return null;
+
+        foreach (var quest in _questController.Quests)
+        {
+            if (quest != null && quest.Id == questId)
+            {
+                return quest;
+            }
+        }
+
+        return null;
     }
 }

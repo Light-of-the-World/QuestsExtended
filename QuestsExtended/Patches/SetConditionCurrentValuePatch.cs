@@ -16,7 +16,7 @@ public class SetConditionCurrentValuePatch : ModulePatch
     }
 
     [PatchPostfix]
-    private static void Postfix(IConditionCounter conditional, EQuestStatus status, Condition condition, float value, bool notify)
+    private static void Postfix(/*IConditionCounter*/ IConditional conditional, EQuestStatus status, Condition condition, float value, bool notify)
     {
         if (!ConfigManager.EnableProgressNotifications.Value) return;
         if (value > condition.value) return;

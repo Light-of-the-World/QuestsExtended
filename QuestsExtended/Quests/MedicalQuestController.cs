@@ -82,6 +82,12 @@ internal class MedicalQuestController
             if (CheckBaseMedicalConditions(condition, effect.BodyPart)) 
                 IncrementCondition(condition, 1f);
         }
+        var extraconditions = _questController.GetActiveConditions(EQuestCondition.FixAnyBleed);
+        foreach (var condition in extraconditions)
+        {
+            if (CheckBaseMedicalConditions(condition, effect.BodyPart))
+                IncrementCondition(condition, 1f);
+        }
     }
     
     private void HandleRemoveHeavyBleed(IEffect effect)
@@ -91,6 +97,12 @@ internal class MedicalQuestController
         foreach (var condition in conditions)
         {
             if (CheckBaseMedicalConditions(condition, effect.BodyPart)) 
+                IncrementCondition(condition, 1f);
+        }
+        var extraconditions = _questController.GetActiveConditions(EQuestCondition.FixAnyBleed);
+        foreach (var condition in extraconditions)
+        {
+            if (CheckBaseMedicalConditions(condition, effect.BodyPart))
                 IncrementCondition(condition, 1f);
         }
     }

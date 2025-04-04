@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Security.Policy;
 using EFT;
 using EFT.Interactive;
@@ -29,14 +28,16 @@ internal class OnGameStartedPatch : ModulePatch
             DumpTriggerZones();
         }
     }
-
-    private static void DumpTriggerZones()
+    private static void DumpTriggerZones() //NON-linq
     {
         var zones = Object.FindObjectsOfType<TriggerWithId>();
 
-        foreach (var zone in zones.Where(z => z is QuestTrigger || z is PlaceItemTrigger || z is ExperienceTrigger))
+        foreach (var zone in zones)
         {
-            Plugin.Log.LogInfo($"ZoneId: {zone.Id} Position: {zone.transform.position.ToString()} Type: {zone.GetType()}");
+            if( zone is QuestTrigger || zone is PlaceItemTrigger || zone is ExperienceTrigger)
+            {
+                Plugin.Log.LogInfo($"ZoneId: {zone.Id} Position: {zone.transform.position.ToString()} Type: {zone.GetType()}");
+            }
         }
     }
 }

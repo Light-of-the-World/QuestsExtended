@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using EFT.HealthSystem;
 using HarmonyLib;
 using SPT.Reflection.Utils;
@@ -37,24 +36,50 @@ public static class RE
         MedEffectType = AccessTools.Inner(typeof(ActiveHealthController), "MedEffect");
         StimulatorType = AccessTools.Inner(typeof(ActiveHealthController), "Stimulator");
 
-        JumpType = PatchConstants.EftTypes
-            .FirstOrDefault(t => t.GetMethod("ApplyMovementAndRotation") is not null);
-        
-        IdleType = PatchConstants.EftTypes
-            .SingleOrDefault(t => t.GetFields()
-                .FirstOrDefault(m => m.Name == "gclass683_0") is not null);
-        
-        RunType = PatchConstants.EftTypes
-            .FirstOrDefault(t => t.GetMethod("HasNoInputForLongTime") is not null);
-        
-        SprintType = PatchConstants.EftTypes
-            .FirstOrDefault(t => t.GetMethod("ChangeSpeed") is not null 
-                                 && t.GetField("StationaryWeapon") is null);
-        
-        BreachDoorType = PatchConstants.EftTypes
-            .FirstOrDefault(t => t.GetMethod("ExecuteDoorInteraction") is not null 
-                                 && t.GetField("KickTime") is not null);
-        
+        foreach (var t in PatchConstants.EftTypes) {
+            if (t.GetMethod("ApplyMovementAndRotation") != null) { 
+                JumpType = t; 
+                return; }
+        }
+
+        foreach (var t in PatchConstants.EftTypes)
+        {
+            foreach (var m in t.GetFields())
+            {
+                if (m.Name == "gclass683_0")
+                {
+                    IdleType = t;
+                    return;
+                }
+            }
+        }
+
+        foreach (var t in PatchConstants.EftTypes)
+        {
+            if (t.GetMethod("HasNoInputForLongTime") != null)
+            {
+                RunType = t;
+                return;
+            }
+        }
+
+        foreach (var t in PatchConstants.EftTypes)
+        {
+            if (t.GetMethod("ChangeSpeed") != null && t.GetField("KickTime") == null)
+            {
+                RunType = t;
+                return;
+            }
+        }
+
+        foreach (var t in PatchConstants.EftTypes)
+        {
+            if (t.GetMethod("ExecuteDoorInteraction") != null && t.GetField("StationaryWeapon") != null)
+            {
+                BreachDoorType = t;
+                return;
+            }
+        }
         if (BleedType is null || FractureType is null || StimulatorType is null)
         {
             throw new MemberNotFoundException("Could not find HealthController nested types");
