@@ -16,7 +16,6 @@ internal class MedicalQuestController
         _player.ActiveHealthController.HealthChangedEvent += HandleHealthChange;
         _player.ActiveHealthController.BodyPartDestroyedEvent += HandleBodyPartDestroyed;
         _player.ActiveHealthController.BodyPartRestoredEvent += HandleBodyPartRestored;
-        _player.ActiveHealthController.DiedEvent += HandleDie;
     }
     
     public void OnDestroy()
@@ -25,7 +24,6 @@ internal class MedicalQuestController
         _player.ActiveHealthController.HealthChangedEvent -= HandleHealthChange;
         _player.ActiveHealthController.BodyPartDestroyedEvent -= HandleBodyPartDestroyed;
         _player.ActiveHealthController.BodyPartRestoredEvent -= HandleBodyPartRestored;
-        _player.ActiveHealthController.DiedEvent -= HandleDie;
     }
     
     private void HandleRemoveHealthCondition(IEffect effect)
@@ -147,30 +145,6 @@ internal class MedicalQuestController
         foreach (var condition in conditions)
         {
             if (CheckBaseMedicalConditions(condition, bodyPart)) 
-                IncrementCondition(condition, 1f);
-        }
-    }
-    
-    private void HandleDie(EDamageType damageType)
-    {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.Die);
-        
-        foreach (var condition in conditions)
-        {
-            if (condition.CustomCondition.DamageTypes is not null)
-            {
-                if (!condition.CustomCondition.DamageTypes.Contains(damageType)) 
-                    continue;
-
-                if (CheckBaseMedicalConditions(condition, EBodyPart.Common))
-                {
-                    IncrementCondition(condition, 1f);
-                }
-                
-                continue;
-            }
-            
-            if (CheckBaseMedicalConditions(condition, EBodyPart.Common)) 
                 IncrementCondition(condition, 1f);
         }
     }
