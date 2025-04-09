@@ -154,10 +154,10 @@ internal class PhysicalQuestController
 
     private static void SetClampedSpeed ()
     {
-        Plugin.Log.LogWarning("OnCharacterControllerSpeedLimitChanged was triggered");
+        //Plugin.Log.LogWarning("OnCharacterControllerSpeedLimitChanged was triggered");
         if (_movementContext.ClampedSpeed <= 0.3f)
         {
-            Plugin.Log.LogWarning("Player is acheiving covert movement");
+            //Plugin.Log.LogWarning("Player is acheiving covert movement");
             isSilent = true;
             ProgressMovementQuests(CalculateDistance(), CheckForPose(), true);
             return;
@@ -296,7 +296,7 @@ internal class PhysicalQuestController
             }
             else
             {
-                Plugin.Log.LogWarning($"Unknown pose: {_movementContext.PoseLevel}");
+                //Plugin.Log.LogWarning($"Unknown pose: {_movementContext.PoseLevel}");
                 return;
             }
         }
@@ -308,11 +308,13 @@ internal class PhysicalQuestController
 
         // Retrieve active conditions just once
         var conditions = _questController.GetActiveConditions(conditionsToCheck);
+        /*
         Plugin.Log.LogWarning($"Conditions: {conditionsToCheck} ({(EQuestCondition)conditionsToCheck}).");
         Plugin.Log.LogWarning($"Matching conditions found: {string.Join(", ", conditions)}");
+        */
         foreach (var cond in conditions)
         {
-            Plugin.Log.LogWarning($"Incrementing condition: {cond} by {distance}");
+            //Plugin.Log.LogWarning($"Incrementing condition: {cond} by {distance}");
             IncrementCondition(cond, distance);
         }
         StaticManager.BeginCoroutine(MovementCooldown());

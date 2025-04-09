@@ -16,13 +16,14 @@ internal class QuestExtendedController : MonoBehaviour
     private static string UnderlyingQuestControllerClassName;
     private Player _player;
     private AbstractQuestControllerClass _questController;
-    
     private Dictionary<string, CustomQuest> CustomQuests => Plugin.Quests;
 
     private readonly List<string> _questsWithCustomConditions = [];
 
     private static MedicalQuestController _medController;
     private static PhysicalQuestController _physicalController;
+    private static StatCounterQuestController _statCounterController;
+
     void Awake()
     {
         _player = Singleton<GameWorld>.Instance.MainPlayer;
@@ -30,6 +31,10 @@ internal class QuestExtendedController : MonoBehaviour
 
         _medController = new MedicalQuestController(this);
         _physicalController = new PhysicalQuestController(this);
+        _statCounterController = new StatCounterQuestController(this);
+
+        _statCounterController.Awake();
+
 
         if (UnderlyingQuestControllerClassName == null)
         {

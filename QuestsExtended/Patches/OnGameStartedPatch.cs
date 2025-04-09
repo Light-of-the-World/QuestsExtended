@@ -28,7 +28,7 @@ internal class OnGameStartedPatch : ModulePatch
             DumpTriggerZones();
         }
     }
-    private static void DumpTriggerZones() //NON-linq
+    private static void DumpTriggerZones()
     {
         var zones = Object.FindObjectsOfType<TriggerWithId>();
 

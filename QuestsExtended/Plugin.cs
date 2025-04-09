@@ -32,6 +32,7 @@ public class Plugin : BaseUnityPlugin
         ConfigManager.InitConfig(Config);
         
         new OnGameStartedPatch().Enable();
+        new StatsManagerPatch().Enable();
         // new SetConditionCurrentValuePatch().Enable();
     }
 
