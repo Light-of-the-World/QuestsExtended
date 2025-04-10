@@ -167,7 +167,7 @@ internal class PhysicalQuestController
 
     private static IEnumerator EncumberedTimer()
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.EncumberedTimeInSeconds);
+        var conditions = _questController.GetActiveConditions("EncumberedTimeInSeconds");
         
         if (conditions.Count == 0) yield return null;
         
@@ -247,82 +247,48 @@ internal class PhysicalQuestController
         if (!isCrouched && isProne) return true;
         else return false;
     }
-    /*
-    private static void CalculateDistance(int distance, bool Standing, bool Silent)
-    {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.MoveDistance);
-        //var conditions = _questController.GetActiveConditions(EQuestCondition.MoveDistance | EQuestCondition.MoveDistanceWhileCrouched | EQuestCondition.MoveDistanceWhileProne | EQuestCondition.MoveDistanceWhileSilent);
-        if (!Standing)
-        {
-            if (!Silent)
-            {
-                if (isCrouched) { conditions = _questController.GetActiveConditions(EQuestCondition.MoveDistance | EQuestCondition.MoveDistanceWhileCrouched); }
-                else if (isProne) { conditions = _questController.GetActiveConditions(EQuestCondition.MoveDistance | EQuestCondition.MoveDistanceWhileProne); }
-                else Plugin.Log.LogWarning("Player is currently not standing, crouched, or prone, please check pose restriction. Current pose is " + _movementContext.PoseLevel.ToString());
-            }
-            else if (Silent)
-            {
-                if (isCrouched) { conditions = _questController.GetActiveConditions(EQuestCondition.MoveDistance | EQuestCondition.MoveDistanceWhileCrouched | EQuestCondition.MoveDistanceWhileSilent); }
-                else if (isProne) { conditions = _questController.GetActiveConditions(EQuestCondition.MoveDistance | EQuestCondition.MoveDistanceWhileProne | EQuestCondition.MoveDistanceWhileSilent); }
-                else Plugin.Log.LogWarning("Player is currently not standing, crouched, or prone, please check pose restriction. Current pose is " + _movementContext.PoseLevel.ToString());
-            }
-            else Plugin.Log.LogWarning("Player is currently not marked as silent or loud. Current clamped speed is " + _movementContext.ClampedSpeed);
-        }
-        else if (Standing)
-        {
-            if (!Silent) { conditions = _questController.GetActiveConditions(EQuestCondition.MoveDistance); }
-            else if (Silent) { conditions = _questController.GetActiveConditions(EQuestCondition.MoveDistance | EQuestCondition.MoveDistanceWhileSilent); }
-            else Plugin.Log.LogWarning("Player is currently not marked as silent or loud. Current clamped speed is " + _movementContext.ClampedSpeed);
-        }
-        else Plugin.Log.LogWarning("Player does not have standing marked as true or false. This shouldn't be possible. Current pose is " + _movementContext.PoseLevel.ToString());
-    }
-    */
-
     private static void ProgressMovementQuests(int distance, bool Standing, bool Silent)
     {
         if (MovementXPCooldown) return;
+
         // Always include MoveDistance
-        EQuestCondition conditionsToCheck = EQuestCondition.MoveDistance;
+        List<string> conditionsToCheck = new List<string> { "MoveDistance" };
 
         if (!Standing)
         {
             if (isCrouched)
             {
-                conditionsToCheck |= EQuestCondition.MoveDistanceWhileCrouched;
+                conditionsToCheck.Add("MoveDistanceWhileCrouched");
             }
             else if (isProne)
             {
-                conditionsToCheck |= EQuestCondition.MoveDistanceWhileProne;
+                conditionsToCheck.Add("MoveDistanceWhileProne");
             }
             else
             {
-                //Plugin.Log.LogWarning($"Unknown pose: {_movementContext.PoseLevel}");
+                // Plugin.Log.LogWarning($"Unknown pose: {_movementContext.PoseLevel}");
                 return;
             }
         }
 
         if (Silent)
         {
-            conditionsToCheck |= EQuestCondition.MoveDistanceWhileSilent;
+            conditionsToCheck.Add("MoveDistanceWhileSilent");
         }
-
         // Retrieve active conditions just once
-        var conditions = _questController.GetActiveConditions(conditionsToCheck);
-        /*
-        Plugin.Log.LogWarning($"Conditions: {conditionsToCheck} ({(EQuestCondition)conditionsToCheck}).");
-        Plugin.Log.LogWarning($"Matching conditions found: {string.Join(", ", conditions)}");
-        */
+        if (conditionsToCheck.Count == 0) return;
+        var conditions = _questController.GetActiveConditions(conditionsToCheck.ToArray());
+
         foreach (var cond in conditions)
         {
-            //Plugin.Log.LogWarning($"Incrementing condition: {cond} by {distance}");
+            // Plugin.Log.LogWarning($"Incrementing condition: {cond} by {distance}");
             IncrementCondition(cond, distance);
         }
         StaticManager.BeginCoroutine(MovementCooldown());
     }
-
     private static IEnumerator OverEncumberedTimer()
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.OverEncumberedTimeInSeconds);
+        var conditions = _questController.GetActiveConditions("OverEncumberedTimeInSeconds");
 
         if (conditions.Count == 0) yield return null;
         
