@@ -40,7 +40,6 @@ public struct CustomCondition
     public EQuestConditionCombat CombatConditionType;
     public EQuestConditionHealth HealthConditionType;
 
-    // This is only used during JSON parsing
     [JsonProperty("ConditionType")] // This maps the JSON "ConditionType" to this property
     public string ConditionTypeRaw
     {
