@@ -47,7 +47,6 @@ public struct CustomCondition
         set
         {
             _conditionTypeRaw = value;
-            Plugin.Log.LogInfo($"[DEBUG] Parsed ConditionTypeRaw = {value}");
             // Try each enum type until one succeeds
             if (Enum.TryParse(value, out EQuestConditionGen gen))
             {

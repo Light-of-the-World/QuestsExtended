@@ -84,65 +84,6 @@ internal class QuestExtendedController : MonoBehaviour
     /// Get active conditions for a specific type
     /// </summary>
     /// <param name="conditionType"></param>
-    /*
-    public List<ConditionPair> GetActiveConditions(EQuestConditionGen conditionType)
-    {
-        var quests = GetActiveQuests();
-
-        // No quests, return empty
-        using var enumerator = quests.GetEnumerator();
-        if (!enumerator.MoveNext()) return [];
-
-        List<ConditionPair> pairs = [];
-        
-        foreach (var quest in quests)
-        {
-            var questRespCond = GetCustomConditionsByCondition(quest.Id, conditionType);
-            
-            if (questRespCond is null)
-            {
-                Plugin.Log.LogWarning($"Skipping quest {quest.Id} : No {conditionType} condition");
-                continue;
-            }
-
-            List<CustomCondition> activeOnLocation = [];
-
-            foreach (var cond in questRespCond)
-            {
-                if ((conditionType & cond.ConditionType) == 0) continue;
-                if (cond.Locations != null)
-                {
-                    foreach (var loc in cond.Locations)
-                    {
-                        if (loc == _player.Location || loc == "any")
-                        {
-                            activeOnLocation.Add(cond);
-                            break; // No need to check more locations once a match is found
-                        }
-                    }
-                }
-            }
-            // Make sure if there are conditions both specific to this map and across any map that we increment all of them
-            foreach (var condition in activeOnLocation)
-            {
-                var bsgCondition = GetBsgConditionById(quest.Id, condition.ConditionId);
-                
-                if (bsgCondition is null) continue;
-
-                ConditionPair pair = new()
-                {
-                    Quest = quest,
-                    Condition = bsgCondition,
-                    CustomCondition = condition
-                };
-                
-                pairs.Add(pair);
-            }
-        }
-
-        return pairs;
-    }
-    */
     public List<ConditionPair> GetActiveConditions(Enum conditionType)
     {
         var quests = GetActiveQuests();
@@ -340,10 +281,6 @@ internal class QuestExtendedController : MonoBehaviour
                     {
                         customConditions.Add(cond);
                     }
-                    else
-                    {
-                        Plugin.Log.LogWarning($"A value is still 0. Checking... conditiontype = {(Convert.ToInt32(conditionType))} , and cond.condtype = {Convert.ToInt32(cond.GenConditionType)}.");
-                    }
                 }
                 break;
 
@@ -370,7 +307,6 @@ internal class QuestExtendedController : MonoBehaviour
                 break;
 
             default:
-                Plugin.Log.LogWarning("INCORRECT VALUES IN GETCUSTOMCONDITIONS! Write more debuggers to find exactly what it is.");
                 return null;
         }
 

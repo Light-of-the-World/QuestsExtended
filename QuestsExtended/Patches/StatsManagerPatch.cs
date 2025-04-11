@@ -18,7 +18,7 @@ internal class StatsManagerPatch : ModulePatch
     [PatchPostfix]
     private static void Postfix(LocationStatisticsCollectorAbstractClass __instance, ref DamageInfoStruct damage, ref float distance)
     {
-        Plugin.Log.LogInfo($"[StatsPatch] OnEnemyDamage called. Sending to StatCounterQuestController for processing.");
+        //Plugin.Log.LogInfo($"[StatsPatch] OnEnemyDamage called. Sending to StatCounterQuestController for processing.");
         StatCounterQuestController.EnemyDamageProcessor(damage, distance);
         //Do not forget to remove this log before publication!
     }

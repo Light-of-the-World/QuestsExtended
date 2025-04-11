@@ -5,15 +5,18 @@ namespace QuestsExtended.Models;
 [Flags]
 public enum EQuestConditionCombat
 {
-    DamageWithAR = 1 << 0,
-    DamageWithDMR = 1 << 1,
-    DamageWithLMG = 1 << 2,
-    DamageWithMelee = 1 << 3,
-    DamageWithPistols = 1 << 4,
-    DamageWithRevolvers = 1 << 5,
-    DamageWithShotguns = 1 << 6,
-    DamageWithSMG = 1 << 7,
-    DamageWithSnipers = 1 << 8,
-    DamageWithThrowables = 1 << 9,
-    TotalShotDistanceWithSnipers = 1 << 10
+    DamageWithAny = 1 << 0,
+    DamageWithAR = 1 << 1,
+    DamageWithDMR = 1 << 2,
+    DamageWithGL = 1 << 3,
+    DamageWithLMG = 1 << 4,
+    DamageWithMelee = 1 << 5,
+    DamageWithPistols = 1 << 6,
+    DamageWithRevolvers = 1 << 7,
+    DamageWithShotguns = 1 << 8,
+    DamageWithSMG = 1 << 9,
+    DamageWithSnipers = 1 << 10,
+    DamageWithThrowables = 1 << 11,
+    DamageToArmour = 1 << 12,
+    TotalShotDistanceWithSnipers = 1 << 13
 }
