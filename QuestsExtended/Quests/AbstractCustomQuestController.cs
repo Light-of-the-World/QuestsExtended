@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Comfort.Common;
 using EFT;
 using QuestsExtended.Models;
@@ -61,6 +60,8 @@ internal abstract class AbstractCustomQuestController
     /// </summary>
     /// <param name="condition"></param>
     /// <returns>True if we are in a zone, or no zones apply</returns>
+    /// 
+    /*
     private bool IsInZone(ConditionPair condition)
     {
         if (condition.CustomCondition.Zones is null) return true;
@@ -70,7 +71,23 @@ internal abstract class AbstractCustomQuestController
         
         return condZones.Any(c => playerZones.Any(p => c == p));
     }
+    */
+    private bool IsInZone(ConditionPair condition)
+    {
+        if (condition.CustomCondition.Zones is null) return true;
 
+        var condZones = condition.CustomCondition.Zones;
+        var playerZones = _player.TriggerZones;
+
+        foreach (var c in condZones)
+        {
+            foreach (var p in playerZones)
+            {
+                if (c == p) return true;
+            }
+        }
+        return false;
+    }
     /// <summary>
     /// Checks a provided condition for body parts the condition should be triggered for
     /// </summary>

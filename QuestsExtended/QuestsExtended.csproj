@@ -9,7 +9,12 @@
         <LangVersion>latest</LangVersion>
         <Configurations>Debug;Release;BETA</Configurations>
         <RootNamespace>$(MSBuildProjectName.Replace(" ", ""))</RootNamespace>
+        <RunPostBuildEvent>Always</RunPostBuildEvent>
     </PropertyGroup>
+
+    <ItemGroup>
+      <Compile Remove="ModExtensions\SkillsExtendedController.cs" />
+    </ItemGroup>
 
     <ItemGroup>
         <Reference Include="0Harmony">
@@ -25,7 +30,7 @@
             <HintPath>..\..\..\EscapeFromTarkov_data\managed\AnimationSystem.Types.dll</HintPath>
         </Reference>
         <Reference Include="Assembly-CSharp">
-            <HintPath>..\..\..\BepInEx\DumpedAssemblies\EscapeFromTarkov\Assembly-CSharp.dll</HintPath>
+            <HintPath>..\..\..\EscapeFromTarkov_data\managed\Assembly-CSharp.dll</HintPath>
         </Reference>
         <Reference Include="BepInEx">
             <HintPath>..\..\..\BepinEx\Core\BepInEx.dll</HintPath>
@@ -81,6 +86,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="ModExtensions\" />
       <Folder Include="Properties\" />
     </ItemGroup>
 

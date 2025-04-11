@@ -14,7 +14,7 @@ namespace QuestsExtended;
 [BepInPlugin("com.dirtbikercj.QuestsExtended", "Quests Extended", "1.1.0")]
 public class Plugin : BaseUnityPlugin
 {
-    internal const int TarkovVersion = 33420;
+    internal const int TarkovVersion = 35392;
     internal static ManualLogSource Log;
 
     internal static Dictionary<string, CustomQuest> Quests { get; private set; } = [];
@@ -32,6 +32,7 @@ public class Plugin : BaseUnityPlugin
         ConfigManager.InitConfig(Config);
         
         new OnGameStartedPatch().Enable();
+        new StatsManagerPatch().Enable();
         // new SetConditionCurrentValuePatch().Enable();
     }
 

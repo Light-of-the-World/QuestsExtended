@@ -22,7 +22,7 @@ public sealed class QuestEvents
             return _questEvents;
         }
     }
-    
+    /*
     #region  LOCKPICKING
 
     public event PickLockEventHandler OnLockPicked;
@@ -107,4 +107,5 @@ public sealed class QuestEvents
     }
     
     #endregion
+    */
 }

@@ -2,6 +2,7 @@
 using EFT.HealthSystem;
 using QuestsExtended.Models;
 using QuestsExtended.Utils;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace QuestsExtended.Quests;
@@ -16,7 +17,6 @@ internal class MedicalQuestController
         _player.ActiveHealthController.HealthChangedEvent += HandleHealthChange;
         _player.ActiveHealthController.BodyPartDestroyedEvent += HandleBodyPartDestroyed;
         _player.ActiveHealthController.BodyPartRestoredEvent += HandleBodyPartRestored;
-        _player.ActiveHealthController.DiedEvent += HandleDie;
     }
     
     public void OnDestroy()
@@ -25,7 +25,6 @@ internal class MedicalQuestController
         _player.ActiveHealthController.HealthChangedEvent -= HandleHealthChange;
         _player.ActiveHealthController.BodyPartDestroyedEvent -= HandleBodyPartDestroyed;
         _player.ActiveHealthController.BodyPartRestoredEvent -= HandleBodyPartRestored;
-        _player.ActiveHealthController.DiedEvent -= HandleDie;
     }
     
     private void HandleRemoveHealthCondition(IEffect effect)
@@ -64,7 +63,7 @@ internal class MedicalQuestController
     
     private void HandleRemoveFracture(IEffect effect)
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.FixFracture);
+        var conditions = _questController.GetActiveConditions(EQuestConditionHealth.FixFracture);
         
         foreach (var condition in conditions)
         {
@@ -75,7 +74,9 @@ internal class MedicalQuestController
     
     private void HandleRemoveLightBleed(IEffect effect)
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.FixLightBleed);
+        EQuestConditionHealth conditionsToCheck = EQuestConditionHealth.FixLightBleed;
+        conditionsToCheck |= EQuestConditionHealth.FixAnyBleed;
+        var conditions = _questController.GetActiveConditions(conditionsToCheck);
         
         foreach (var condition in conditions)
         {
@@ -86,8 +87,10 @@ internal class MedicalQuestController
     
     private void HandleRemoveHeavyBleed(IEffect effect)
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.FixHeavyBleed);
-        
+        EQuestConditionHealth conditionsToCheck = EQuestConditionHealth.FixHeavyBleed;
+        conditionsToCheck |= EQuestConditionHealth.FixAnyBleed;
+        var conditions = _questController.GetActiveConditions(conditionsToCheck);
+
         foreach (var condition in conditions)
         {
             if (CheckBaseMedicalConditions(condition, effect.BodyPart)) 
@@ -97,7 +100,7 @@ internal class MedicalQuestController
 
     private void HandleHealthLoss(EBodyPart bodyPart, float change, DamageInfoStruct damage)
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.HealthLoss);
+        var conditions = _questController.GetActiveConditions(EQuestConditionHealth.HealthLoss);
         
         foreach (var condition in conditions)
         {
@@ -108,7 +111,7 @@ internal class MedicalQuestController
 
     private void HandleHealthGain(EBodyPart bodyPart, float change, DamageInfoStruct damage)
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.HealthGain);
+        var conditions = _questController.GetActiveConditions(EQuestConditionHealth.HealthGain);
 
         foreach (var condition in conditions)
         {
@@ -119,7 +122,7 @@ internal class MedicalQuestController
     
     private void HandleBodyPartDestroyed(EBodyPart bodyPart, EDamageType damageType)
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.DestroyBodyPart);
+        var conditions = _questController.GetActiveConditions(EQuestConditionHealth.DestroyBodyPart);
         
         foreach (var condition in conditions)
         {
@@ -130,35 +133,11 @@ internal class MedicalQuestController
 
     private void HandleBodyPartRestored(EBodyPart bodyPart, ValueStruct value)
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.RestoreBodyPart);
+        var conditions = _questController.GetActiveConditions(EQuestConditionHealth.RestoreBodyPart);
         
         foreach (var condition in conditions)
         {
             if (CheckBaseMedicalConditions(condition, bodyPart)) 
-                IncrementCondition(condition, 1f);
-        }
-    }
-    
-    private void HandleDie(EDamageType damageType)
-    {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.Die);
-        
-        foreach (var condition in conditions)
-        {
-            if (condition.CustomCondition.DamageTypes is not null)
-            {
-                if (!condition.CustomCondition.DamageTypes.Contains(damageType)) 
-                    continue;
-
-                if (CheckBaseMedicalConditions(condition, EBodyPart.Common))
-                {
-                    IncrementCondition(condition, 1f);
-                }
-                
-                continue;
-            }
-            
-            if (CheckBaseMedicalConditions(condition, EBodyPart.Common)) 
                 IncrementCondition(condition, 1f);
         }
     }
