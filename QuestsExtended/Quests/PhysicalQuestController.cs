@@ -167,7 +167,7 @@ internal class PhysicalQuestController
 
     private static IEnumerator EncumberedTimer()
     {
-        var conditions = _questController.GetActiveConditions("EncumberedTimeInSeconds");
+        var conditions = _questController.GetActiveConditions(EQuestConditionGen.EncumberedTimeInSeconds);
         
         if (conditions.Count == 0) yield return null;
         
@@ -250,45 +250,47 @@ internal class PhysicalQuestController
     private static void ProgressMovementQuests(int distance, bool Standing, bool Silent)
     {
         if (MovementXPCooldown) return;
-
         // Always include MoveDistance
-        List<string> conditionsToCheck = new List<string> { "MoveDistance" };
+        EQuestConditionGen conditionsToCheck = EQuestConditionGen.MoveDistance;
 
         if (!Standing)
         {
             if (isCrouched)
             {
-                conditionsToCheck.Add("MoveDistanceWhileCrouched");
+                conditionsToCheck |= EQuestConditionGen.MoveDistanceWhileCrouched;
             }
             else if (isProne)
             {
-                conditionsToCheck.Add("MoveDistanceWhileProne");
+                conditionsToCheck |= EQuestConditionGen.MoveDistanceWhileProne;
             }
             else
             {
-                // Plugin.Log.LogWarning($"Unknown pose: {_movementContext.PoseLevel}");
+                //Plugin.Log.LogWarning($"Unknown pose: {_movementContext.PoseLevel}");
                 return;
             }
         }
 
         if (Silent)
         {
-            conditionsToCheck.Add("MoveDistanceWhileSilent");
+            conditionsToCheck |= EQuestConditionGen.MoveDistanceWhileSilent;
         }
-        // Retrieve active conditions just once
-        if (conditionsToCheck.Count == 0) return;
-        var conditions = _questController.GetActiveConditions(conditionsToCheck.ToArray());
 
+        // Retrieve active conditions just once
+        var conditions = _questController.GetActiveConditions(conditionsToCheck);
+        /*
+        Plugin.Log.LogWarning($"Conditions: {conditionsToCheck} ({(EQuestCondition)conditionsToCheck}).");
+        Plugin.Log.LogWarning($"Matching conditions found: {string.Join(", ", conditions)}");
+        */
         foreach (var cond in conditions)
         {
-            // Plugin.Log.LogWarning($"Incrementing condition: {cond} by {distance}");
+            //Plugin.Log.LogWarning($"Incrementing condition: {cond} by {distance}");
             IncrementCondition(cond, distance);
         }
         StaticManager.BeginCoroutine(MovementCooldown());
     }
     private static IEnumerator OverEncumberedTimer()
     {
-        var conditions = _questController.GetActiveConditions("OverEncumberedTimeInSeconds");
+        var conditions = _questController.GetActiveConditions(EQuestConditionGen.OverEncumberedTimeInSeconds);
 
         if (conditions.Count == 0) yield return null;
         

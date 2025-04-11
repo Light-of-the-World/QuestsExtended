@@ -143,7 +143,7 @@ internal class QuestExtendedController : MonoBehaviour
         return pairs;
     }
     */
-    public List<ConditionPair> GetActiveConditions(params string[] conditionNames)
+    public List<ConditionPair> GetActiveConditions(Enum conditionType)
     {
         var quests = GetActiveQuests();
 
@@ -153,64 +153,72 @@ internal class QuestExtendedController : MonoBehaviour
 
         List<ConditionPair> pairs = new List<ConditionPair>();
 
-        // List of all Enum types (EQuestCondition* enums)
-        var enumTypes = new List<Type>
+        // Determine the enum type based on the conditionType
+        Type enumType = null;
+        Array enumValues = null;
+
+        if (conditionType.GetType() == typeof(EQuestConditionGen))
         {
-            typeof(EQuestConditionGen),
-            typeof(EQuestConditionHealth),
-            typeof(EQuestConditionCombat)
-            // Add other enums if needed
-        };
+            enumType = typeof(EQuestConditionGen);
+            enumValues = Enum.GetValues(typeof(EQuestConditionGen));
+        }
+        else if (conditionType.GetType() == typeof(EQuestConditionCombat))
+        {
+            enumType = typeof(EQuestConditionCombat);
+            enumValues = Enum.GetValues(typeof(EQuestConditionCombat));
+        }
+        else if (conditionType.GetType() == typeof(EQuestConditionHealth))
+        {
+            enumType = typeof(EQuestConditionHealth);
+            enumValues = Enum.GetValues(typeof(EQuestConditionHealth));
+        }
+        else
+        {
+            Plugin.Log.LogWarning($"Unsupported condition type: {conditionType.GetType().Name}. Defaulting to EQuestConditionGen.");
+            enumType = typeof(EQuestConditionGen);
+            enumValues = Enum.GetValues(typeof(EQuestConditionGen));
+        }
 
         foreach (var quest in quests)
         {
-            // Get the matching custom conditions for the quest
-            var questRespCond = GetCustomConditionsByCondition(quest.Id, conditionNames);
+            var questRespCond = GetCustomConditionsByCondition(quest.Id, conditionType);
 
             if (questRespCond is null)
             {
-                Plugin.Log.LogWarning($"Skipping quest {quest.Id} : No conditions for provided names");
+                Plugin.Log.LogWarning($"Skipping quest {quest.Id} : No {conditionType} condition");
                 continue;
             }
 
             List<CustomCondition> activeOnLocation = new List<CustomCondition>();
-            // Loop through all enums
-            // List of known enum-type properties on CustomCondition
-            //var enumProperties = new[] { "GenConditionType", "HealthConditionType", "CombatConditionType" };
+
             foreach (var cond in questRespCond)
             {
-                foreach (var enumType in enumTypes)
+                // Check if the conditionType belongs to the selected enum type
+                if (conditionType.GetType() != enumType) continue;
+
+                // Check if the condition matches one of the selected enum values
+                foreach (var enumValue in enumValues)
                 {
-                    if (enumType == typeof(EQuestConditionGen))
+                    if ((Convert.ToInt32(conditionType) & Convert.ToInt32(enumValue)) != 0)
                     {
-                        if (Enum.TryParse<EQuestConditionGen>(name, out var parsedEnum))
+                        if (cond.Locations != null)
                         {
-                            if ((cond.GenConditionType & parsedEnum) != 0) activeOnLocation.Add(cond);
-                            else Plugin.Log.LogInfo($"Parse failed. Logging values. parsed enum = {parsedEnum.ToString()}. cond type = {cond.GenConditionType.ToString()}.");
+                            foreach (var loc in cond.Locations)
+                            {
+                                if (loc == _player.Location || loc == "any")
+                                {
+                                    activeOnLocation.Add(cond);
+                                    break;
+                                }
+                            }
                         }
+                        break;  // Exit once we find a match
                     }
-                    else if (enumType == typeof(EQuestConditionCombat))
-                    {
-                        if (Enum.TryParse<EQuestConditionCombat>(name, out var parsedEnum))
-                        {
-                            if ((cond.CombatConditionType & parsedEnum) != 0) activeOnLocation.Add(cond);
-                        }
-                    }
-                    else if (enumType == typeof(EQuestConditionHealth))
-                    {
-                        if (Enum.TryParse<EQuestConditionHealth>(name, out var parsedEnum))
-                        {
-                            if ((cond.HealthConditionType & parsedEnum) != 0) activeOnLocation.Add(cond);
-                        }
-                    }
-                    else Plugin.Log.LogWarning("enumType is none of the enums!");
                 }
             }
 
-            // Now, add the conditions that match
             foreach (var condition in activeOnLocation)
             {
-                Plugin.Log.LogInfo("Trying GetBsgConditionById");
                 var bsgCondition = GetBsgConditionById(quest.Id, condition.ConditionId);
 
                 if (bsgCondition is null) continue;
@@ -221,7 +229,7 @@ internal class QuestExtendedController : MonoBehaviour
                     Condition = bsgCondition,
                     CustomCondition = condition
                 };
-                Plugin.Log.LogInfo($"[QE]Adding pair: {quest}, {bsgCondition}, {condition}");
+
                 pairs.Add(pair);
             }
         }
@@ -312,7 +320,7 @@ internal class QuestExtendedController : MonoBehaviour
     /// <param name="conditionType"></param>
     /// <returns></returns>
     [CanBeNull]
-    private IEnumerable<CustomCondition> GetCustomConditionsByCondition(string questId, params string[] conditionNames)
+    private IEnumerable<CustomCondition> GetCustomConditionsByCondition(string questId, Enum conditionType)
     {
         if (!CustomQuests.TryGetValue(questId, out var quest))
         {
@@ -320,35 +328,50 @@ internal class QuestExtendedController : MonoBehaviour
         }
 
         List<CustomCondition> customConditions = new List<CustomCondition>();
-        foreach (var cond in quest.Conditions)
+
+        // Use a switch case based on the type of the enum
+        switch (conditionType)
         {
-            if ((conditionNames != null) && (conditionNames.Length != 0) /*&& ((cond.GenConditionType !=0 ) || (cond.HealthConditionType !=0 ) || (cond.CombatConditionType != 0 ))*/)
-            {
-                customConditions.Add(cond);
-            }
-            else
-            {
-                if (conditionNames == null)
+            case EQuestConditionGen _:
+                // Check if the conditionType matches the passed enum using bitwise operations
+                foreach (var cond in quest.Conditions)
                 {
-                    Plugin.Log.LogWarning("[QE] conditionNames was null");
+                    if ((Convert.ToInt32(conditionType) & Convert.ToInt32(cond.GenConditionType)) != 0)
+                    {
+                        customConditions.Add(cond);
+                    }
+                    else
+                    {
+                        Plugin.Log.LogWarning($"A value is still 0. Checking... conditiontype = {(Convert.ToInt32(conditionType))} , and cond.condtype = {Convert.ToInt32(cond.GenConditionType)}.");
+                    }
                 }
-                if (conditionNames.Length == 0)
+                break;
+
+            case EQuestConditionCombat _:
+                // Check if the conditionType matches the passed enum using bitwise operations
+                foreach (var cond in quest.Conditions)
                 {
-                    Plugin.Log.LogWarning("[QE] conditionNames's length is equal to 0.");
+                    if ((Convert.ToInt32(conditionType) & Convert.ToInt32(cond.CombatConditionType)) != 0)
+                    {
+                        customConditions.Add(cond);
+                    }
                 }
-                if (cond.GenConditionType == 0)
+                break;
+
+            case EQuestConditionHealth _:
+                // Check if the conditionType matches the passed enum using bitwise operations
+                foreach (var cond in quest.Conditions)
                 {
-                    Plugin.Log.LogWarning("[QE] cond.GenConditionType is empty.");
+                    if ((Convert.ToInt32(conditionType) & Convert.ToInt32(cond.HealthConditionType)) != 0)
+                    {
+                        customConditions.Add(cond);
+                    }
                 }
-                if (cond.HealthConditionType == 0)
-                {
-                    Plugin.Log.LogWarning("[QE] cond.HealthConditionType is empty.");
-                }
-                if (cond.CombatConditionType == 0)
-                {
-                    Plugin.Log.LogWarning("[QE] cond.CombatConditionType is empty.");
-                }
-            }
+                break;
+
+            default:
+                Plugin.Log.LogWarning("INCORRECT VALUES IN GETCUSTOMCONDITIONS! Write more debuggers to find exactly what it is.");
+                return null;
         }
 
         return customConditions;
