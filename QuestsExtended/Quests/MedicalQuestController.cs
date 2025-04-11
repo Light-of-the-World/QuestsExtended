@@ -2,6 +2,7 @@
 using EFT.HealthSystem;
 using QuestsExtended.Models;
 using QuestsExtended.Utils;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace QuestsExtended.Quests;
@@ -62,7 +63,7 @@ internal class MedicalQuestController
     
     private void HandleRemoveFracture(IEffect effect)
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.FixFracture);
+        var conditions = _questController.GetActiveConditions(EQuestConditionHealth.FixFracture);
         
         foreach (var condition in conditions)
         {
@@ -73,41 +74,33 @@ internal class MedicalQuestController
     
     private void HandleRemoveLightBleed(IEffect effect)
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.FixLightBleed | EQuestCondition.FixAnyBleed);
+        EQuestConditionHealth conditionsToCheck = EQuestConditionHealth.FixLightBleed;
+        conditionsToCheck |= EQuestConditionHealth.FixAnyBleed;
+        var conditions = _questController.GetActiveConditions(conditionsToCheck);
         
         foreach (var condition in conditions)
         {
             if (CheckBaseMedicalConditions(condition, effect.BodyPart)) 
-                IncrementCondition(condition, 1f);
-        }
-        var extraconditions = _questController.GetActiveConditions(EQuestCondition.FixAnyBleed);
-        foreach (var condition in extraconditions)
-        {
-            if (CheckBaseMedicalConditions(condition, effect.BodyPart))
                 IncrementCondition(condition, 1f);
         }
     }
     
     private void HandleRemoveHeavyBleed(IEffect effect)
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.FixHeavyBleed);
-        
+        EQuestConditionHealth conditionsToCheck = EQuestConditionHealth.FixHeavyBleed;
+        conditionsToCheck |= EQuestConditionHealth.FixAnyBleed;
+        var conditions = _questController.GetActiveConditions(conditionsToCheck);
+
         foreach (var condition in conditions)
         {
             if (CheckBaseMedicalConditions(condition, effect.BodyPart)) 
-                IncrementCondition(condition, 1f);
-        }
-        var extraconditions = _questController.GetActiveConditions(EQuestCondition.FixAnyBleed);
-        foreach (var condition in extraconditions)
-        {
-            if (CheckBaseMedicalConditions(condition, effect.BodyPart))
                 IncrementCondition(condition, 1f);
         }
     }
 
     private void HandleHealthLoss(EBodyPart bodyPart, float change, DamageInfoStruct damage)
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.HealthLoss);
+        var conditions = _questController.GetActiveConditions(EQuestConditionHealth.HealthLoss);
         
         foreach (var condition in conditions)
         {
@@ -118,7 +111,7 @@ internal class MedicalQuestController
 
     private void HandleHealthGain(EBodyPart bodyPart, float change, DamageInfoStruct damage)
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.HealthGain);
+        var conditions = _questController.GetActiveConditions(EQuestConditionHealth.HealthGain);
 
         foreach (var condition in conditions)
         {
@@ -129,7 +122,7 @@ internal class MedicalQuestController
     
     private void HandleBodyPartDestroyed(EBodyPart bodyPart, EDamageType damageType)
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.DestroyBodyPart);
+        var conditions = _questController.GetActiveConditions(EQuestConditionHealth.DestroyBodyPart);
         
         foreach (var condition in conditions)
         {
@@ -140,7 +133,7 @@ internal class MedicalQuestController
 
     private void HandleBodyPartRestored(EBodyPart bodyPart, ValueStruct value)
     {
-        var conditions = _questController.GetActiveConditions(EQuestCondition.RestoreBodyPart);
+        var conditions = _questController.GetActiveConditions(EQuestConditionHealth.RestoreBodyPart);
         
         foreach (var condition in conditions)
         {
