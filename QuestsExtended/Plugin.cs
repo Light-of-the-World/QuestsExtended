@@ -32,8 +32,8 @@ public class Plugin : BaseUnityPlugin
         ConfigManager.InitConfig(Config);
         
         new OnGameStartedPatch().Enable();
-        new StatsManagerPatch().Enable();
-        // new SetConditionCurrentValuePatch().Enable();
+        new EnemyDamagePatch().Enable();
+        new SearchContainerPatch().Enable();
     }
 
     private void Start()

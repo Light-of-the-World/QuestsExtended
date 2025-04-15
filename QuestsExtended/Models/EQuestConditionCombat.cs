@@ -18,5 +18,5 @@ public enum EQuestConditionCombat
     DamageWithSnipers = 1 << 10,
     DamageWithThrowables = 1 << 11,
     DamageToArmour = 1 << 12,
-    TotalShotDistanceWithSnipers = 1 << 13
+    TotalShotDistanceWithSnipers = 1 << 13,
 }
