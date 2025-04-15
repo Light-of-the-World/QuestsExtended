@@ -12,21 +12,26 @@ using JetBrains.Annotations;
 using QuestsExtended.Models;
 using UnityEngine;
 using EFT.Counters;
+using System.Collections;
+using EFT.InventoryLogic;
 
 namespace QuestsExtended.Quests
 {
     internal class StatCounterQuestController : AbstractCustomQuestController
     {
+        private static bool LootingXPCooldown;
         public StatCounterQuestController(QuestExtendedController questExtendedController)
         : base(questExtendedController)
         {
-
+            _player.StatisticsManager.OnUniqueLoot += UniqueItemLooted;
         }
         private static float ArmourDamageholder;
         public void Awake()
         {
             Plugin.Log.LogInfo("StatCounterQuestController is active.");
         }
+
+        //Damage
         public static void EnemyDamageProcessor(DamageInfoStruct damage, float distance)
         {
             //Plugin.Log.LogInfo($"[StatsCounter] Sucessfully triggered EnemyDamageProcessor with sent information. You may now start writing the code. Body Damage was {damage.DidBodyDamage}, armour damage was {damage.DidArmorDamage} and distance was {distance}");
@@ -101,6 +106,45 @@ namespace QuestsExtended.Quests
                 {
                     IncrementCondition(cond, (int)Math.Round(damage.DidBodyDamage, 0));
                 }
+            }
+        }
+        //Looting
+        public static void UniqueItemLooted()
+        {
+            if (LootingXPCooldown) return;
+            var conditions = _questController.GetActiveConditions(EQuestConditionGen.LootItem);
+            foreach (var cond in conditions)
+            {
+                IncrementCondition(cond, 1);
+            }
+            StaticManager.BeginCoroutine(LootingCooldown());
+        }
+
+        private static IEnumerator LootingCooldown()
+        {
+            LootingXPCooldown = true;
+            yield return new WaitForSeconds(0.05f);
+            LootingXPCooldown = false;
+        }
+        //Searching containers
+        private static HashSet<string> SearchedContainers = new HashSet<string>();
+
+        public static void SearchingContainer (Item item)
+        {
+            if (SearchedContainers.Contains(item.Id))
+            {
+                // Already searched this container
+                return;
+            }
+
+            // Mark it as searched
+            SearchedContainers.Add(item.Id);
+
+            // Proceed with the rest of your logic
+            var conditions = _questController.GetActiveConditions(EQuestConditionGen.SearchContainer);
+            foreach (var cond in conditions)
+            {
+                IncrementCondition(cond, 1);
             }
         }
     }

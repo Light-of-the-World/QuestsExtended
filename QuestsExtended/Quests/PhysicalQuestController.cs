@@ -237,6 +237,12 @@ internal class PhysicalQuestController
                     return floatResult;
                 }
             }
+            if (_moveAllfloat > 1f)
+            {
+                int floatResult = (int)Math.Round(_moveAllfloat, 0);
+                _moveAllfloat = 0;
+                return floatResult;
+            }
         }
         //Plugin.Log.LogWarning("Rounded distance between last marked pos and current pos is " + num4 + ".");
         return distanceToInt;

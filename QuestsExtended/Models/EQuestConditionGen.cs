@@ -11,8 +11,6 @@ public enum EQuestConditionGen
     MoveDistanceWhileCrouched = 1 << 3,
     MoveDistanceWhileProne = 1 << 4,
     MoveDistanceWhileSilent = 1 << 5,
-    KillWhileADS = 1 << 6,
-    KillWhileProne = 1 << 7,
-    SearchContainer = 1 << 8,
-    LootItem = 1 << 9,
+    SearchContainer = 1 << 6,
+    LootItem = 1 << 7,
 }
