@@ -13,4 +13,5 @@ public enum EQuestConditionGen
     MoveDistanceWhileSilent = 1 << 5,
     SearchContainer = 1 << 6,
     LootItem = 1 << 7,
+    ActivatePowerSwitch = 1 << 8,
 }

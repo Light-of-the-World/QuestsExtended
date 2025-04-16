@@ -30,6 +30,7 @@ internal class PhysicalQuestController
     private static bool isCrouched;
     private static bool isProne;
     private static bool isSilent;
+    public static bool isRaidOver = false;
 
     //floats
     private static float lastX;
@@ -63,6 +64,7 @@ internal class PhysicalQuestController
         _physical.OverEncumberedChanged += SetOverEncumbered;
         _movementContext.OnPoseChanged += SetPose;
         _movementContext.OnCharacterControllerSpeedLimitChanged += SetClampedSpeed;
+        _player.OnPlayerDeadOrUnspawn += RaidOver;
 
         // Flag for encumbered
         if (_physical.Boolean_0)
@@ -87,10 +89,12 @@ internal class PhysicalQuestController
         _physical.OverEncumberedChanged -= SetOverEncumbered;
         _movementContext.OnPoseChanged -= SetPose;
         _movementContext.OnCharacterControllerSpeedLimitChanged -= SetClampedSpeed;
+        _player.OnPlayerDeadOrUnspawn -= RaidOver;
     }
 
     public void Update()
     {
+        if (isRaidOver) return;
         if (isEcumbered && !isEcumberedRunning)
             StaticManager.BeginCoroutine(EncumberedTimer());
         
@@ -112,6 +116,7 @@ internal class PhysicalQuestController
 
     private static void SetEncumbered(bool encumbered)
     {
+        if (isRaidOver) return;
         isEcumbered = encumbered;
 
         if (!encumbered) return;
@@ -121,39 +126,63 @@ internal class PhysicalQuestController
     
     private static void SetOverEncumbered(bool encumbered)
     {
+        if (isRaidOver) return;
         isOverEncumbered = encumbered;
         
         if (!encumbered) return;
         
         StaticManager.BeginCoroutine( OverEncumberedTimer());
     }
-
+    public static string LastPose = "Default";
     private static void SetPose(int pose)
     {
-        if (_movementContext.IsInPronePose)
+        if (isRaidOver) return;
+        if (_movementContext.IsInPronePose && isCrouched)
         {
-            Plugin.Log.LogWarning("Player is prone");
+            if (LastPose == "Standing") return;
+            Plugin.Log.LogWarning("Player is entering prone from crouch");
+            ProgressMovementQuests(CalculateDistance(), true, isSilent);
             isProne = true;
+            isCrouched = false;
+            LastPose = "Standing";
+        }
+        else if (_movementContext.IsInPronePose && !isCrouched)
+        {
+            if (LastPose == "Prone") return;
+            Plugin.Log.LogInfo("Player is entering prone from a stand");
             ProgressMovementQuests(CalculateDistance(), false, isSilent);
+            isProne = true;
+            LastPose = "Prone";
         }
         else if (isProne)
         {
             isProne = false;
-            Plugin.Log.LogWarning("Player is standing up from prone");
+            Plugin.Log.LogInfo("Player is exiting prone");
             ProgressMovementQuests(CalculateDistance(), true, isSilent);
         }
         else isProne = false;
-        if (_movementContext.PoseLevel <= 0.6 && !isProne)
+        if (_movementContext.PoseLevel <= 0.6 && !isProne && !isCrouched)
         {
-            Plugin.Log.LogWarning("Player is crouched");
+            if (LastPose == "Crouched") return;
+            Plugin.Log.LogInfo("Player is entering crouch");
+            ProgressMovementQuests(CalculateDistance(), true, isSilent);
             isCrouched = true;
+            LastPose = "Crouched";
+        }
+        else if (_movementContext.PoseLevel >= 0.6 && !isProne && isCrouched)
+        {
+            if (LastPose == "Standing") return;
+            Plugin.Log.LogInfo("Player is standing from a crouch");
             ProgressMovementQuests(CalculateDistance(), false, isSilent);
+            isCrouched = false;
+            LastPose = "Standing";
         }
         else isCrouched= false;
     }
 
     private static void SetClampedSpeed ()
     {
+        if (isRaidOver) return;
         //Plugin.Log.LogWarning("OnCharacterControllerSpeedLimitChanged was triggered");
         if (_movementContext.ClampedSpeed <= 0.3f)
         {
@@ -197,6 +226,7 @@ internal class PhysicalQuestController
 
     private static int CalculateDistance()
     {
+        if (isRaidOver) return 0;
         lastX = _playerPos.x;
         lastZ = _playerPos.z;
         _playerPos = Singleton<GameWorld>.Instance.MainPlayer.PlayerBody.transform.position;
@@ -255,6 +285,7 @@ internal class PhysicalQuestController
     }
     private static void ProgressMovementQuests(int distance, bool Standing, bool Silent)
     {
+        if (isRaidOver) return;
         if (MovementXPCooldown) return;
         // Always include MoveDistance
         EQuestConditionGen conditionsToCheck = EQuestConditionGen.MoveDistance;
@@ -320,6 +351,10 @@ internal class PhysicalQuestController
         MovementXPCooldown = true;
         yield return new WaitForSeconds(0.15f);
         MovementXPCooldown = false;
+    }
+    private static void RaidOver(Player player)
+    {
+        isRaidOver = true;
     }
 
     /*

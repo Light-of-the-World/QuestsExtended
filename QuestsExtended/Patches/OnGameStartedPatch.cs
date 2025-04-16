@@ -22,6 +22,8 @@ internal class OnGameStartedPatch : ModulePatch
     private static void Postfix(GameWorld __instance)
     {
         __instance.GetOrAddComponent<QuestExtendedController>();
+        PhysicalQuestController.isRaidOver = false;
+        PhysicalQuestController.LastPose = "Default";
 
         if (ConfigManager.DumpQuestZones.Value)
         {
