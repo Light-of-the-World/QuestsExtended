@@ -19,7 +19,6 @@ namespace QuestsExtended.Quests
 {
     internal class StatCounterQuestController : AbstractCustomQuestController
     {
-        private static bool LootingXPCooldown;
         public StatCounterQuestController(QuestExtendedController questExtendedController)
         : base(questExtendedController)
         {
@@ -109,6 +108,7 @@ namespace QuestsExtended.Quests
             }
         }
         //Looting
+        private static bool LootingXPCooldown;
         public static void UniqueItemLooted()
         {
             if (LootingXPCooldown) return;
@@ -146,6 +146,25 @@ namespace QuestsExtended.Quests
             {
                 IncrementCondition(cond, 1);
             }
+        }
+        //Interacting with power switches
+        private static bool SwitchCooldown; //The switch method that BSG uses likes to call itself quite a few times... let's ensure it's only called once.
+        public static void PowerSwitchInteractedWith()
+        {
+            if (SwitchCooldown) return;
+            var conditions = _questController.GetActiveConditions(EQuestConditionGen.ActivatePowerSwitch);
+            foreach (var cond in conditions)
+            {
+                IncrementCondition(cond, 1);
+            }
+            StaticManager.BeginCoroutine(SwitchCooldownTimer());
+        }
+
+        private static IEnumerator SwitchCooldownTimer()
+        {
+            SwitchCooldown = true;
+            yield return new WaitForSeconds(5f); //Players will not be hitting multiple power levers in 5 seconds, and as mentioned earlier, the switch method likes to call multiple times.
+            SwitchCooldown = false;
         }
     }
 }

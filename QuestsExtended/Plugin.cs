@@ -34,6 +34,7 @@ public class Plugin : BaseUnityPlugin
         new OnGameStartedPatch().Enable();
         new EnemyDamagePatch().Enable();
         new SearchContainerPatch().Enable();
+        new SwitchPatch().Enable();
     }
 
     private void Start()
