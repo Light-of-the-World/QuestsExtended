@@ -112,13 +112,47 @@ namespace QuestsExtended.Quests
                 }
             }
         }
-        public static void BodyPartDestroyed (DamageInfoStruct damageInfo, EBodyPart bodyPart)
+        public static void BodyPartDestroyed(DamageInfoStruct damageInfo, EBodyPart bodyPart)
         {
             EQuestConditionCombat conditionsToAdd = EQuestConditionCombat.DestroyBodyParts;
             if (damageInfo.Weapon is SmgItemClass && (bodyPart.Equals(EBodyPart.LeftLeg) || bodyPart.Equals(EBodyPart.RightLeg)))
             {
-                //Plugin.Log.LogInfo("Player destoryed a leg with an SMG. Remove this logger before publishing.");
+                Plugin.Log.LogInfo("Player destoryed a leg with an SMG. Remove this logger before publishing.");
                 conditionsToAdd |= EQuestConditionCombat.DestroyLegsWithSMG;
+            }
+            var conditions = _questController.GetActiveConditions(conditionsToAdd);
+            foreach (var cond in conditions)
+            {
+                IncrementCondition(cond, 1);
+            }
+        }
+        public static void EnemyKillProcessor(DamageInfoStruct damageInfo)
+        {
+            EQuestConditionCombat conditionsToAdd = EQuestConditionCombat.Empty;
+            if (PhysicalQuestController.isCrouched)
+            {
+                //Plugin.Log.LogInfo("Player scored a kill while crouched. Remove this logger before publishing.");
+                conditionsToAdd |= EQuestConditionCombat.KillsWhileCrouched;
+            }
+            else if (PhysicalQuestController.isProne)
+            {
+                //Plugin.Log.LogInfo("Player scored a kill while prone. Remove this logger before publishing.");
+                conditionsToAdd |= EQuestConditionCombat.KillsWhileProne;
+            }
+            if (PhysicalQuestController._movementContext.IsInMountedState)
+            {
+                //Plugin.Log.LogInfo("Player scored a kill while mounted. Remove this logger before publishing.");
+                conditionsToAdd |= EQuestConditionCombat.KillsWhileMounted;
+                if (damageInfo.Weapon is MachineGunItemClass)
+                {
+                    //Plugin.Log.LogInfo("Player scored a kill with an LMG while mounted. Remove this logger before publishing.");
+                    conditionsToAdd |= EQuestConditionCombat.MountedKillsWithLMG;
+                }
+            }
+            if (PhysicalQuestController.isSilent)
+            {
+                //Plugin.Log.LogInfo("Player scored a kill while silent. Remove this logger before publishing.");
+                conditionsToAdd |= EQuestConditionCombat.KillsWhileSilent;
             }
             var conditions = _questController.GetActiveConditions(conditionsToAdd);
             foreach (var cond in conditions)

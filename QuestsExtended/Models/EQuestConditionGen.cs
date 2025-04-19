@@ -14,4 +14,5 @@ public enum EQuestConditionGen
     SearchContainer = 1 << 6,
     LootItem = 1 << 7,
     ActivatePowerSwitch = 1 << 8,
+    Empty = 1 <<31,
 }

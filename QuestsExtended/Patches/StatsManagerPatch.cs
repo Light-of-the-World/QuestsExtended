@@ -27,6 +27,22 @@ internal class EnemyDamagePatch : ModulePatch
     }
 }
 
+internal class EnemyKillPatch : ModulePatch
+{
+    protected override MethodBase GetTargetMethod()
+    {
+        return AccessTools.Method(typeof(LocationStatisticsCollectorAbstractClass), nameof(LocationStatisticsCollectorAbstractClass.OnEnemyKill));
+    }
+
+    [PatchPostfix]
+    private static void Postfix(LocationStatisticsCollectorAbstractClass __instance, ref DamageInfoStruct damage)
+    {
+        //Plugin.Log.LogInfo($"[StatsPatch] OnEnemyKill called. Sending to StatCounterQuestController for processing.");
+        StatCounterQuestController.EnemyKillProcessor(damage);
+        //Do not forget to remove this log before publication!
+    }
+}
+
 internal class SearchContainerPatch : ModulePatch
 {
     protected override MethodBase GetTargetMethod()
@@ -92,8 +108,10 @@ internal class DestroyLimbsPatch : ModulePatch
     [PatchPrefix]
     private static void Prefix(ActiveHealthController __instance, DamageInfoStruct damageInfo, EBodyPart bodyPart)
     {
+        if (__instance == null) return;
         if (!damageInfo.Player.IsAI)
         {
+            if (__instance.Dictionary_0 == null || __instance.dictionary_0.Count <= 0) return;
             GClass2814<ActiveHealthController.GClass2813>.BodyPartState bodyPartState = __instance.Dictionary_0[bodyPart];
             float health = bodyPartState.Health.Current;
             health -= damageInfo.Damage;

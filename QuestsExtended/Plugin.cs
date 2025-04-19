@@ -37,6 +37,7 @@ public class Plugin : BaseUnityPlugin
         new SwitchPatch().Enable();
         new ArmourDurabilityPatch().Enable();
         new DestroyLimbsPatch().Enable();
+        new EnemyKillPatch().Enable();
     }
 
     private void Start()

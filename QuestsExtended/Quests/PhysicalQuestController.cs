@@ -17,7 +17,7 @@ internal class PhysicalQuestController
 {
     private static BasePhysicalClass _physical;
     private static Vector3 _playerPos;
-    private static MovementContext _movementContext;
+    public static MovementContext _movementContext;
 
     private static bool isEcumbered;
     private static bool isEcumberedRunning;
@@ -27,9 +27,10 @@ internal class PhysicalQuestController
     
     //Things added by Light
     //bools (no timers)
-    private static bool isCrouched;
-    private static bool isProne;
-    private static bool isSilent;
+    public static bool isCrouched;
+    public static bool isProne;
+    public static bool isSilent;
+    public static bool isMounted;
     public static bool isRaidOver = false;
 
     //floats
@@ -112,6 +113,7 @@ internal class PhysicalQuestController
         if (_pedometer != null && !PositionDebugTimer)
             StaticManager.BeginCoroutine(PositionNumbersDebug());
         */
+        isMounted = _movementContext.IsInMountedState;
     }
 
     private static void SetEncumbered(bool encumbered)
@@ -140,7 +142,7 @@ internal class PhysicalQuestController
         if (_movementContext.IsInPronePose && isCrouched)
         {
             if (LastPose == "Standing") return;
-            Plugin.Log.LogWarning("Player is entering prone from crouch");
+            //Plugin.Log.LogWarning("Player is entering prone from crouch");
             ProgressMovementQuests(CalculateDistance(), true, isSilent);
             isProne = true;
             isCrouched = false;
@@ -149,7 +151,7 @@ internal class PhysicalQuestController
         else if (_movementContext.IsInPronePose && !isCrouched)
         {
             if (LastPose == "Prone") return;
-            Plugin.Log.LogInfo("Player is entering prone from a stand");
+            //Plugin.Log.LogInfo("Player is entering prone from a stand");
             ProgressMovementQuests(CalculateDistance(), false, isSilent);
             isProne = true;
             LastPose = "Prone";
@@ -157,14 +159,14 @@ internal class PhysicalQuestController
         else if (isProne)
         {
             isProne = false;
-            Plugin.Log.LogInfo("Player is exiting prone");
+            //Plugin.Log.LogInfo("Player is exiting prone");
             ProgressMovementQuests(CalculateDistance(), true, isSilent);
         }
         else isProne = false;
         if (_movementContext.PoseLevel <= 0.6 && !isProne && !isCrouched)
         {
             if (LastPose == "Crouched") return;
-            Plugin.Log.LogInfo("Player is entering crouch");
+            //Plugin.Log.LogInfo("Player is entering crouch");
             ProgressMovementQuests(CalculateDistance(), true, isSilent);
             isCrouched = true;
             LastPose = "Crouched";
@@ -172,7 +174,7 @@ internal class PhysicalQuestController
         else if (_movementContext.PoseLevel >= 0.6 && !isProne && isCrouched)
         {
             if (LastPose == "Standing") return;
-            Plugin.Log.LogInfo("Player is standing from a crouch");
+            //Plugin.Log.LogInfo("Player is standing from a crouch");
             ProgressMovementQuests(CalculateDistance(), false, isSilent);
             isCrouched = false;
             LastPose = "Standing";
@@ -191,9 +193,8 @@ internal class PhysicalQuestController
             ProgressMovementQuests(CalculateDistance(), CheckForPose(), true);
             return;
         }
-        else { isSilent = false; ProgressMovementQuests(CalculateDistance(), CheckForPose(), false); }
+        else { isSilent = false; ProgressMovementQuests(CalculateDistance(), CheckForPose(), false); /*Plugin.Log.LogWarning("Player is NO LONGER acheiving covert movement");*/ }
     }
-
     private static IEnumerator EncumberedTimer()
     {
         var conditions = _questController.GetActiveConditions(EQuestConditionGen.EncumberedTimeInSeconds);
