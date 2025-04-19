@@ -36,6 +36,7 @@ public class Plugin : BaseUnityPlugin
         new SearchContainerPatch().Enable();
         new SwitchPatch().Enable();
         new ArmourDurabilityPatch().Enable();
+        new DestroyLimbsPatch().Enable();
     }
 
     private void Start()

@@ -18,6 +18,8 @@ public enum EQuestConditionCombat
     DamageWithSnipers = 1 << 10,
     DamageWithThrowables = 1 << 11,
     DamageToArmour = 1 << 12,
-    DamageToArmourWithShotguns = 1 << 13,
-    TotalShotDistanceWithSnipers = 1 << 14,
+    DestroyBodyParts = 1 << 13,
+    DestroyLegsWithSMG = 1 << 14,
+    DamageToArmourWithShotguns = 1 << 15,
+    TotalShotDistanceWithSnipers = 1 << 16,
 }

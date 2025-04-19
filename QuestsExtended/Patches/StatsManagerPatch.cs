@@ -1,7 +1,9 @@
-﻿using System.Linq;
+﻿using System.Collections;
+using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using EFT;
+using EFT.HealthSystem;
 using EFT.InventoryLogic;
 using HarmonyLib;
 using QuestsExtended.Quests;
@@ -57,5 +59,48 @@ internal class ArmourDurabilityPatch : ModulePatch
         */
         if (!damageInfo.Player.IsAI) { StatCounterQuestController.ArmourDamageProcessor(__result, damageInfo); }
         //Do not forget to remove this log before publication!
+    }
+}
+
+internal class DestroyLimbsPatch : ModulePatch
+{
+    protected override MethodBase GetTargetMethod()
+    {
+        return AccessTools.Method(typeof(ActiveHealthController), nameof(ActiveHealthController.ApplyDamage));
+    }
+    /*
+    [PatchPrefix]
+    private static void Prefix(out ActiveHealthController.BodyPartState __state)
+    {
+        __state = new ActiveHealthController.BodyPartState();
+    }
+
+    [PatchPostfix]
+    private static void Postfix(ActiveHealthController.BodyPartState __state, ActiveHealthController __instance, ref DamageInfoStruct damageInfo, ref EBodyPart bodyPart)
+    {
+        if (!damageInfo.Player.IsAI)
+        {
+            GClass2814<ActiveHealthController.GClass2813>.BodyPartState bodyPartState = __instance.Dictionary_0[bodyPart];
+            if (bodyPartState.IsDestroyed && bodyPartState.Health.AtMinimum && !__state.IsDestroyed)
+            {
+                Plugin.Log.LogInfo("Player just destroyed a body part.");
+                //StatCounterQuestController.BodyPartDestroyed(__instance, damageInfo, bodyPart);
+            }
+        }
+    }
+    */
+    [PatchPrefix]
+    private static void Prefix(ActiveHealthController __instance, DamageInfoStruct damageInfo, EBodyPart bodyPart)
+    {
+        if (!damageInfo.Player.IsAI)
+        {
+            GClass2814<ActiveHealthController.GClass2813>.BodyPartState bodyPartState = __instance.Dictionary_0[bodyPart];
+            float health = bodyPartState.Health.Current;
+            health -= damageInfo.Damage;
+            if (!bodyPartState.IsDestroyed && health <= 0)
+            {
+                StatCounterQuestController.BodyPartDestroyed(damageInfo, bodyPart);
+            }
+        }
     }
 }

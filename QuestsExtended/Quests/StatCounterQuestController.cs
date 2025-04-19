@@ -14,6 +14,7 @@ using UnityEngine;
 using EFT.Counters;
 using System.Collections;
 using EFT.InventoryLogic;
+using EFT.HealthSystem;
 
 namespace QuestsExtended.Quests
 {
@@ -103,13 +104,26 @@ namespace QuestsExtended.Quests
                     ArmourDamageholder = 0;
                     EQuestConditionCombat conditionsToAdd = EQuestConditionCombat.DamageToArmour;
                     if (damageInfo.Weapon is ShotgunItemClass) conditionsToAdd |= EQuestConditionCombat.DamageToArmourWithShotguns;
-                    var conditions = _questController.GetActiveConditions(EQuestConditionCombat.DamageToArmour);
+                    var conditions = _questController.GetActiveConditions(conditionsToAdd);
                     foreach (var cond in conditions)
                     {
-                        //Plugin.Log.LogWarning($"Incrementing condition: {cond} by {distance}");
                         IncrementCondition(cond, floatResult);
                     }
                 }
+            }
+        }
+        public static void BodyPartDestroyed (DamageInfoStruct damageInfo, EBodyPart bodyPart)
+        {
+            EQuestConditionCombat conditionsToAdd = EQuestConditionCombat.DestroyBodyParts;
+            if (damageInfo.Weapon is SmgItemClass && (bodyPart.Equals(EBodyPart.LeftLeg) || bodyPart.Equals(EBodyPart.RightLeg)))
+            {
+                //Plugin.Log.LogInfo("Player destoryed a leg with an SMG. Remove this logger before publishing.");
+                conditionsToAdd |= EQuestConditionCombat.DestroyLegsWithSMG;
+            }
+            var conditions = _questController.GetActiveConditions(conditionsToAdd);
+            foreach (var cond in conditions)
+            {
+                IncrementCondition(cond, 1);
             }
         }
         //Looting
