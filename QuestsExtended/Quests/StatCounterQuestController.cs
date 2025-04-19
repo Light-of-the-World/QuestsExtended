@@ -35,21 +35,6 @@ namespace QuestsExtended.Quests
         {
             //Plugin.Log.LogInfo($"[StatsCounter] Sucessfully triggered EnemyDamageProcessor with sent information. You may now start writing the code. Body Damage was {damage.DidBodyDamage}, armour damage was {damage.DidArmorDamage} and distance was {distance}");
             EQuestConditionCombat conditionstoAdd = EQuestConditionCombat.DamageWithAny;
-            if (damage.DidArmorDamage > 0f)
-            { 
-                ArmourDamageholder += damage.DidArmorDamage;
-                if (ArmourDamageholder > 1f)
-                {
-                    int floatResult = (int)Math.Round(damage.DidArmorDamage, 0);
-                    ArmourDamageholder = 0;
-                    var specialcondition1 = _questController.GetActiveConditions(EQuestConditionCombat.DamageToArmour);
-                    foreach (var cond in specialcondition1)
-                    {
-                        //Plugin.Log.LogWarning($"Incrementing condition: {cond} by {distance}");
-                        IncrementCondition(cond, floatResult);
-                    }
-                }
-            }
             if (damage.Weapon != null)
             {
                 if (damage.Weapon is PistolItemClass)
@@ -104,6 +89,26 @@ namespace QuestsExtended.Quests
                 foreach (var cond in conditions)
                 {
                     IncrementCondition(cond, (int)Math.Round(damage.DidBodyDamage, 0));
+                }
+            }
+        }
+        public static void ArmourDamageProcessor(float damage, DamageInfoStruct damageInfo)
+        {
+            if (damage > 0f)
+            {
+                ArmourDamageholder += damage;
+                if (ArmourDamageholder > 1f)
+                {
+                    int floatResult = (int)Math.Round(damage, 0);
+                    ArmourDamageholder = 0;
+                    EQuestConditionCombat conditionsToAdd = EQuestConditionCombat.DamageToArmour;
+                    if (damageInfo.Weapon is ShotgunItemClass) conditionsToAdd |= EQuestConditionCombat.DamageToArmourWithShotguns;
+                    var conditions = _questController.GetActiveConditions(EQuestConditionCombat.DamageToArmour);
+                    foreach (var cond in conditions)
+                    {
+                        //Plugin.Log.LogWarning($"Incrementing condition: {cond} by {distance}");
+                        IncrementCondition(cond, floatResult);
+                    }
                 }
             }
         }
