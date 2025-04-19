@@ -35,6 +35,7 @@ public class Plugin : BaseUnityPlugin
         new EnemyDamagePatch().Enable();
         new SearchContainerPatch().Enable();
         new SwitchPatch().Enable();
+        new ArmourDurabilityPatch().Enable();
     }
 
     private void Start()
