@@ -114,10 +114,10 @@ namespace QuestsExtended.Quests
         }
         public static void BodyPartDestroyed(DamageInfoStruct damageInfo, EBodyPart bodyPart)
         {
-            EQuestConditionCombat conditionsToAdd = EQuestConditionCombat.DestroyBodyParts;
+            EQuestConditionCombat conditionsToAdd = EQuestConditionCombat.DestroyEnemyBodyParts;
             if (damageInfo.Weapon is SmgItemClass && (bodyPart.Equals(EBodyPart.LeftLeg) || bodyPart.Equals(EBodyPart.RightLeg)))
             {
-                Plugin.Log.LogInfo("Player destoryed a leg with an SMG. Remove this logger before publishing.");
+                //Plugin.Log.LogInfo("Player destoryed a leg with an SMG. Remove this logger before publishing.");
                 conditionsToAdd |= EQuestConditionCombat.DestroyLegsWithSMG;
             }
             var conditions = _questController.GetActiveConditions(conditionsToAdd);
@@ -153,6 +153,21 @@ namespace QuestsExtended.Quests
             {
                 //Plugin.Log.LogInfo("Player scored a kill while silent. Remove this logger before publishing.");
                 conditionsToAdd |= EQuestConditionCombat.KillsWhileSilent;
+            }
+            if (PhysicalQuestController.isADS)
+            {
+                Plugin.Log.LogInfo("Player scored a kill while aiming down sight. Remove this logger before publishing.");
+                conditionsToAdd |= EQuestConditionCombat.KillsWhileADS;
+            }
+            if (!PhysicalQuestController.isADS && damageInfo.Weapon is RevolverItemClass)
+            {
+                Plugin.Log.LogInfo("Player scored a kill with a revolver while hip firing. Remove this logger before publishing.");
+                conditionsToAdd |= EQuestConditionCombat.RevolverKillsWithoutADS;
+            }
+            if (PhysicalQuestController.isBlindFiring)
+            {
+                Plugin.Log.LogInfo("Player got a kill while blind firing. Remove this logger before publishing.");
+                conditionsToAdd |= EQuestConditionCombat.KillsWhileBlindFiring;
             }
             var conditions = _questController.GetActiveConditions(conditionsToAdd);
             foreach (var cond in conditions)

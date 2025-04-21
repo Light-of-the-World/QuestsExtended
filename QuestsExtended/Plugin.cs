@@ -38,6 +38,8 @@ public class Plugin : BaseUnityPlugin
         new ArmourDurabilityPatch().Enable();
         new DestroyLimbsPatch().Enable();
         new EnemyKillPatch().Enable();
+        new EnterBlindFirePatch().Enable();
+        new ExitBlindFirePatch().Enable();
     }
 
     private void Start()

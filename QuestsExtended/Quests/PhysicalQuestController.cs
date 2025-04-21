@@ -27,10 +27,12 @@ internal class PhysicalQuestController
     
     //Things added by Light
     //bools (no timers)
-    public static bool isCrouched;
-    public static bool isProne;
-    public static bool isSilent;
-    public static bool isMounted;
+    public static bool isCrouched = false;
+    public static bool isProne = false;
+    public static bool isSilent = false;
+    public static bool isMounted = false;
+    public static bool isADS = false;
+    public static bool isBlindFiring = false;
     public static bool isRaidOver = false;
 
     //floats
@@ -114,6 +116,7 @@ internal class PhysicalQuestController
             StaticManager.BeginCoroutine(PositionNumbersDebug());
         */
         isMounted = _movementContext.IsInMountedState;
+        isADS = _player.HandsController.IsAiming;
     }
 
     private static void SetEncumbered(bool encumbered)

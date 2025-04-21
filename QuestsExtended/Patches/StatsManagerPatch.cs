@@ -78,6 +78,40 @@ internal class ArmourDurabilityPatch : ModulePatch
     }
 }
 
+internal class EnterBlindFirePatch : ModulePatch
+{
+    protected override MethodBase GetTargetMethod()
+    {
+        return AccessTools.Method(typeof(Player), nameof(Player.ToggleBlindFire));
+    }
+    [PatchPostfix]
+    private static void Postfix(Player __instance, ref float blindFireValue)
+    {
+        if (!__instance.IsAI && blindFireValue !=0)
+        {
+            Plugin.Log.LogInfo($"[StatsPatch] Player is blind firing.");
+            PhysicalQuestController.isBlindFiring = true;
+        }
+    }
+}
+
+internal class ExitBlindFirePatch : ModulePatch
+{
+    protected override MethodBase GetTargetMethod()
+    {
+        return AccessTools.Method(typeof(Player), nameof(Player.StopBlindFire));
+    }
+    [PatchPostfix]
+    private static void Postfix(Player __instance)
+    {
+        if (!__instance.IsAI)
+        {
+            Plugin.Log.LogInfo($"[StatsPatch] Player is no longer blind firing.");
+            PhysicalQuestController.isBlindFiring = false;
+        }
+    }
+}
+
 internal class DestroyLimbsPatch : ModulePatch
 {
     protected override MethodBase GetTargetMethod()
@@ -108,7 +142,7 @@ internal class DestroyLimbsPatch : ModulePatch
     [PatchPrefix]
     private static void Prefix(ActiveHealthController __instance, DamageInfoStruct damageInfo, EBodyPart bodyPart)
     {
-        if (__instance == null) return;
+        if (__instance == null || damageInfo.Weapon == null) return;
         if (!damageInfo.Player.IsAI)
         {
             if (__instance.Dictionary_0 == null || __instance.dictionary_0.Count <= 0) return;
