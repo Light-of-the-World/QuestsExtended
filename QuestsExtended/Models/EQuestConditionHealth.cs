@@ -13,4 +13,5 @@ public enum EQuestConditionHealth
     HealthGain = 1 << 5,
     DestroyBodyPart = 1 << 6,
     RestoreBodyPart = 1 << 7,
+    Empty = 1 << 31,
 }

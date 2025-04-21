@@ -1,7 +1,9 @@
-﻿using System.Linq;
+﻿using System.Collections;
+using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using EFT;
+using EFT.HealthSystem;
 using EFT.InventoryLogic;
 using HarmonyLib;
 using QuestsExtended.Quests;
@@ -21,6 +23,22 @@ internal class EnemyDamagePatch : ModulePatch
     {
         //Plugin.Log.LogInfo($"[StatsPatch] OnEnemyDamage called. Sending to StatCounterQuestController for processing.");
         StatCounterQuestController.EnemyDamageProcessor(damage, distance);
+        //Do not forget to remove this log before publication!
+    }
+}
+
+internal class EnemyKillPatch : ModulePatch
+{
+    protected override MethodBase GetTargetMethod()
+    {
+        return AccessTools.Method(typeof(LocationStatisticsCollectorAbstractClass), nameof(LocationStatisticsCollectorAbstractClass.OnEnemyKill));
+    }
+
+    [PatchPostfix]
+    private static void Postfix(LocationStatisticsCollectorAbstractClass __instance, ref DamageInfoStruct damage)
+    {
+        //Plugin.Log.LogInfo($"[StatsPatch] OnEnemyKill called. Sending to StatCounterQuestController for processing.");
+        StatCounterQuestController.EnemyKillProcessor(damage);
         //Do not forget to remove this log before publication!
     }
 }
@@ -57,5 +75,84 @@ internal class ArmourDurabilityPatch : ModulePatch
         */
         if (!damageInfo.Player.IsAI) { StatCounterQuestController.ArmourDamageProcessor(__result, damageInfo); }
         //Do not forget to remove this log before publication!
+    }
+}
+
+internal class EnterBlindFirePatch : ModulePatch
+{
+    protected override MethodBase GetTargetMethod()
+    {
+        return AccessTools.Method(typeof(Player), nameof(Player.ToggleBlindFire));
+    }
+    [PatchPostfix]
+    private static void Postfix(Player __instance, ref float blindFireValue)
+    {
+        if (!__instance.IsAI && blindFireValue !=0)
+        {
+            Plugin.Log.LogInfo($"[StatsPatch] Player is blind firing.");
+            PhysicalQuestController.isBlindFiring = true;
+        }
+    }
+}
+
+internal class ExitBlindFirePatch : ModulePatch
+{
+    protected override MethodBase GetTargetMethod()
+    {
+        return AccessTools.Method(typeof(Player), nameof(Player.StopBlindFire));
+    }
+    [PatchPostfix]
+    private static void Postfix(Player __instance)
+    {
+        if (!__instance.IsAI)
+        {
+            Plugin.Log.LogInfo($"[StatsPatch] Player is no longer blind firing.");
+            PhysicalQuestController.isBlindFiring = false;
+        }
+    }
+}
+
+internal class DestroyLimbsPatch : ModulePatch
+{
+    protected override MethodBase GetTargetMethod()
+    {
+        return AccessTools.Method(typeof(ActiveHealthController), nameof(ActiveHealthController.ApplyDamage));
+    }
+    /*
+    [PatchPrefix]
+    private static void Prefix(out ActiveHealthController.BodyPartState __state)
+    {
+        __state = new ActiveHealthController.BodyPartState();
+    }
+
+    [PatchPostfix]
+    private static void Postfix(ActiveHealthController.BodyPartState __state, ActiveHealthController __instance, ref DamageInfoStruct damageInfo, ref EBodyPart bodyPart)
+    {
+        if (!damageInfo.Player.IsAI)
+        {
+            GClass2814<ActiveHealthController.GClass2813>.BodyPartState bodyPartState = __instance.Dictionary_0[bodyPart];
+            if (bodyPartState.IsDestroyed && bodyPartState.Health.AtMinimum && !__state.IsDestroyed)
+            {
+                Plugin.Log.LogInfo("Player just destroyed a body part.");
+                //StatCounterQuestController.BodyPartDestroyed(__instance, damageInfo, bodyPart);
+            }
+        }
+    }
+    */
+    [PatchPrefix]
+    private static void Prefix(ActiveHealthController __instance, DamageInfoStruct damageInfo, EBodyPart bodyPart)
+    {
+        if (__instance == null || damageInfo.Weapon == null) return;
+        if (!damageInfo.Player.IsAI)
+        {
+            if (__instance.Dictionary_0 == null || __instance.dictionary_0.Count <= 0) return;
+            GClass2814<ActiveHealthController.GClass2813>.BodyPartState bodyPartState = __instance.Dictionary_0[bodyPart];
+            float health = bodyPartState.Health.Current;
+            health -= damageInfo.Damage;
+            if (!bodyPartState.IsDestroyed && health <= 0)
+            {
+                StatCounterQuestController.BodyPartDestroyed(damageInfo, bodyPart);
+            }
+        }
     }
 }

@@ -14,6 +14,7 @@ using UnityEngine;
 using EFT.Counters;
 using System.Collections;
 using EFT.InventoryLogic;
+using EFT.HealthSystem;
 
 namespace QuestsExtended.Quests
 {
@@ -103,13 +104,75 @@ namespace QuestsExtended.Quests
                     ArmourDamageholder = 0;
                     EQuestConditionCombat conditionsToAdd = EQuestConditionCombat.DamageToArmour;
                     if (damageInfo.Weapon is ShotgunItemClass) conditionsToAdd |= EQuestConditionCombat.DamageToArmourWithShotguns;
-                    var conditions = _questController.GetActiveConditions(EQuestConditionCombat.DamageToArmour);
+                    var conditions = _questController.GetActiveConditions(conditionsToAdd);
                     foreach (var cond in conditions)
                     {
-                        //Plugin.Log.LogWarning($"Incrementing condition: {cond} by {distance}");
                         IncrementCondition(cond, floatResult);
                     }
                 }
+            }
+        }
+        public static void BodyPartDestroyed(DamageInfoStruct damageInfo, EBodyPart bodyPart)
+        {
+            EQuestConditionCombat conditionsToAdd = EQuestConditionCombat.DestroyEnemyBodyParts;
+            if (damageInfo.Weapon is SmgItemClass && (bodyPart.Equals(EBodyPart.LeftLeg) || bodyPart.Equals(EBodyPart.RightLeg)))
+            {
+                //Plugin.Log.LogInfo("Player destoryed a leg with an SMG. Remove this logger before publishing.");
+                conditionsToAdd |= EQuestConditionCombat.DestroyLegsWithSMG;
+            }
+            var conditions = _questController.GetActiveConditions(conditionsToAdd);
+            foreach (var cond in conditions)
+            {
+                IncrementCondition(cond, 1);
+            }
+        }
+        public static void EnemyKillProcessor(DamageInfoStruct damageInfo)
+        {
+            EQuestConditionCombat conditionsToAdd = EQuestConditionCombat.Empty;
+            if (PhysicalQuestController.isCrouched)
+            {
+                //Plugin.Log.LogInfo("Player scored a kill while crouched. Remove this logger before publishing.");
+                conditionsToAdd |= EQuestConditionCombat.KillsWhileCrouched;
+            }
+            else if (PhysicalQuestController.isProne)
+            {
+                //Plugin.Log.LogInfo("Player scored a kill while prone. Remove this logger before publishing.");
+                conditionsToAdd |= EQuestConditionCombat.KillsWhileProne;
+            }
+            if (PhysicalQuestController._movementContext.IsInMountedState)
+            {
+                //Plugin.Log.LogInfo("Player scored a kill while mounted. Remove this logger before publishing.");
+                conditionsToAdd |= EQuestConditionCombat.KillsWhileMounted;
+                if (damageInfo.Weapon is MachineGunItemClass)
+                {
+                    //Plugin.Log.LogInfo("Player scored a kill with an LMG while mounted. Remove this logger before publishing.");
+                    conditionsToAdd |= EQuestConditionCombat.MountedKillsWithLMG;
+                }
+            }
+            if (PhysicalQuestController.isSilent)
+            {
+                //Plugin.Log.LogInfo("Player scored a kill while silent. Remove this logger before publishing.");
+                conditionsToAdd |= EQuestConditionCombat.KillsWhileSilent;
+            }
+            if (PhysicalQuestController.isADS)
+            {
+                Plugin.Log.LogInfo("Player scored a kill while aiming down sight. Remove this logger before publishing.");
+                conditionsToAdd |= EQuestConditionCombat.KillsWhileADS;
+            }
+            if (!PhysicalQuestController.isADS && damageInfo.Weapon is RevolverItemClass)
+            {
+                Plugin.Log.LogInfo("Player scored a kill with a revolver while hip firing. Remove this logger before publishing.");
+                conditionsToAdd |= EQuestConditionCombat.RevolverKillsWithoutADS;
+            }
+            if (PhysicalQuestController.isBlindFiring)
+            {
+                Plugin.Log.LogInfo("Player got a kill while blind firing. Remove this logger before publishing.");
+                conditionsToAdd |= EQuestConditionCombat.KillsWhileBlindFiring;
+            }
+            var conditions = _questController.GetActiveConditions(conditionsToAdd);
+            foreach (var cond in conditions)
+            {
+                IncrementCondition(cond, 1);
             }
         }
         //Looting
