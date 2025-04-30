@@ -2,6 +2,7 @@
 using EFT.HealthSystem;
 using QuestsExtended.Models;
 using QuestsExtended.Utils;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -101,22 +102,23 @@ internal class MedicalQuestController
     private void HandleHealthLoss(EBodyPart bodyPart, float change, DamageInfoStruct damage)
     {
         var conditions = _questController.GetActiveConditions(EQuestConditionHealth.HealthLoss);
-        
+        int intChange = (int)Math.Round(change, 0);
         foreach (var condition in conditions)
         {
             if (CheckBaseMedicalConditions(condition, bodyPart)) 
-                IncrementCondition(condition, Mathf.Abs(change));
+                IncrementCondition(condition, Math.Abs(intChange));
         }
     }
 
     private void HandleHealthGain(EBodyPart bodyPart, float change, DamageInfoStruct damage)
     {
         var conditions = _questController.GetActiveConditions(EQuestConditionHealth.HealthGain);
+        int intChange = (int)Math.Round(change, 0);
 
         foreach (var condition in conditions)
         {
             if (CheckBaseMedicalConditions(condition, bodyPart)) 
-                IncrementCondition(condition, change);
+                IncrementCondition(condition, intChange);
         }
     }
     

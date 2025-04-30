@@ -32,6 +32,7 @@ public class Plugin : BaseUnityPlugin
         ConfigManager.InitConfig(Config);
         
         new OnGameStartedPatch().Enable();
+        new OnGameEndedPatch().Enable();
         new EnemyDamagePatch().Enable();
         new SearchContainerPatch().Enable();
         new SwitchPatch().Enable();
@@ -40,6 +41,7 @@ public class Plugin : BaseUnityPlugin
         new EnemyKillPatch().Enable();
         new EnterBlindFirePatch().Enable();
         new ExitBlindFirePatch().Enable();
+        new ConditionCompletedPatch().Enable();
     }
 
     private void Start()
