@@ -59,7 +59,7 @@ internal class QuestExtendedController : MonoBehaviour
             }
 
             UnderlyingQuestControllerClassName = foundType.Name.Split('`')[0];
-            Plugin.Log.LogDebug($"Resolved {nameof(UnderlyingQuestControllerClassName)} to be {UnderlyingQuestControllerClassName}");
+            Plugin.Log.LogInfo($"Resolved {nameof(UnderlyingQuestControllerClassName)} to be {UnderlyingQuestControllerClassName} (put this back to LogDebug!)");
         }
 
         foreach (var condition in CustomQuests)
@@ -196,9 +196,10 @@ internal class QuestExtendedController : MonoBehaviour
                 _questController.GetType(), 
                 $"{UnderlyingQuestControllerClassName.ToLowerInvariant()}_0")
             .GetValue(_questController);
-                    
+
+
         AccessTools.DeclaredMethod(conditionController.GetType().BaseType, "SetConditionCurrentValue")
-            .Invoke(conditionController, new object[] { quest, EQuestStatus.AvailableForFinish, condition, currentVal + value, true });
+            .Invoke(conditionController, new object[] { quest, /*EQuestStatus.AvailableForFinish < WRONG*/ EQuestStatus.Started, condition, currentVal + value, true });
     }
     
     /// <summary>
@@ -206,7 +207,7 @@ internal class QuestExtendedController : MonoBehaviour
     /// and we have custom conditions for
     /// </summary>
     /// <returns></returns>
-    private IEnumerable<QuestClass> GetActiveQuests()
+    public IEnumerable<QuestClass> GetActiveQuests()
     {
         List<QuestClass> activeQuests = [];
 
@@ -215,6 +216,7 @@ internal class QuestExtendedController : MonoBehaviour
             if (quest.QuestStatus == EQuestStatus.Started && _questsWithCustomConditions.Contains(quest.Id))
             {
                 activeQuests.Add(quest);
+                OptionalConditionController.AddQuestIDToActiveList(quest.Id);
             }
         }
 
@@ -244,8 +246,18 @@ internal class QuestExtendedController : MonoBehaviour
             foreach (var condition in conditions)
             {
                 if (condition.id == conditionId)
-                {
+                {   
                     return condition;
+                }
+                if (condition.ChildConditions.Count > 0)
+                {
+                    foreach (var childCondition in condition.ChildConditions)
+                    {
+                        if (childCondition.id == conditionId)
+                        {
+                            return childCondition;
+                        }
+                    }
                 }
             }
         }

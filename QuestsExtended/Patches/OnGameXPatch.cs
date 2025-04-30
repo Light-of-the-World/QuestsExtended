@@ -8,6 +8,7 @@ using QuestsExtended.Quests;
 using QuestsExtended.Utils;
 using SPT.Reflection.Patching;
 using UnityEngine;
+using QuestsExtended.SaveLoadRelatedClasses;
 
 namespace QuestsExtended.Patches;
 
@@ -22,6 +23,8 @@ internal class OnGameStartedPatch : ModulePatch
     private static void Postfix(GameWorld __instance)
     {
         __instance.GetOrAddComponent<QuestExtendedController>();
+        CompletedChildConditions saveDataClass = __instance.GetOrAddComponent<CompletedChildConditions>();
+        saveDataClass.init();
         PhysicalQuestController.isRaidOver = false;
         PhysicalQuestController.LastPose = "Default";
 
@@ -41,5 +44,18 @@ internal class OnGameStartedPatch : ModulePatch
                 Plugin.Log.LogInfo($"ZoneId: {zone.Id} Position: {zone.transform.position.ToString()} Type: {zone.GetType()}");
             }
         }
+    }
+}
+internal class OnGameEndedPatch : ModulePatch
+{
+    protected override MethodBase GetTargetMethod()
+    {
+        return AccessTools.Method(typeof(GameWorld), nameof(GameWorld.UnregisterPlayer));
+    }
+
+    [PatchPostfix]
+    private static void Postfix(GameWorld __instance)
+    {
+        __instance.GetComponent<CompletedChildConditions>().SaveCompletedOptionals();
     }
 }
