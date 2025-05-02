@@ -42,6 +42,7 @@ public class Plugin : BaseUnityPlugin
         new EnterBlindFirePatch().Enable();
         new ExitBlindFirePatch().Enable();
         new ConditionCompletedPatch().Enable();
+        new LocalQuestControllerClassGetter().Enable();
     }
 
     private void Start()

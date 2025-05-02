@@ -16,6 +16,7 @@ using SPT.Common.Http;
 using System.Collections;
 using UnityEngine;
 using static LocationScene;
+using static BackendDummyClass;
 
 namespace QuestsExtended.Patches
 {
@@ -57,15 +58,104 @@ namespace QuestsExtended.Patches
                 }
             }
         }
-        /*
-        public static List<string> ThingWeSend { get; set; } = [];
-
-        public static T ServerRoute<T>(string url, T data = default)
+    }
+    /*
+    internal class GClass3873Getter : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
         {
-            string json = JsonConvert.SerializeObject(data);
-            string req = RequestHandler.PostJson(url, json);
-            return JsonConvert.DeserializeObject<T>(req);
+            return AccessTools.Method(typeof(GClass3873), nameof(GClass3873.method_1));
         }
-        */
+        [PatchPostfix]
+        private static void Postfix(GClass3873 __instance)
+        {
+            if (OptionalConditionController.questClass == null)
+            {
+                Plugin.Log.LogInfo("Got GClass3873 from method1");
+                OptionalConditionController.questClass = __instance;
+            }
+        }
+    }
+    */
+    internal class GClass2098Getter : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return AccessTools.Method(typeof(GClass2098), nameof(GClass2098.UpdateProfile));
+        }
+        [PatchPostfix]
+        private static void Postfix(GClass2098 __instance)
+        {
+            if (OptionalConditionController.questClass != __instance)
+            {
+                Plugin.Log.LogInfo("Got GClass2098 from UpdateProfile");
+                OptionalConditionController.questClass = __instance;
+            }
+        }
+    }
+    internal class GClass2098Getter2 : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return AccessTools.Method(typeof(GClass2098), nameof(GClass2098.Bind));
+        }
+        [PatchPostfix]
+        private static void Postfix(GClass2098 __instance)
+        {
+            if (OptionalConditionController.questClass != __instance)
+            {
+                Plugin.Log.LogInfo("Got GClass2098 from Bind");
+                OptionalConditionController.questClass = __instance;
+            }
+        }
+    }
+
+    internal class GClass2098Getter3 : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return AccessTools.Method(typeof(GClass2098), nameof(GClass2098.Class1480.method_0));
+        }
+        [PatchPostfix]
+        private static void Postfix(GClass2098 __instance)
+        {
+            if (OptionalConditionController.questClass != __instance)
+            {
+                Plugin.Log.LogInfo("Got GClass2098 from Class1480.method_0");
+                OptionalConditionController.questClass = __instance;
+            }
+        }
+    }
+    internal class GClass2098Getter4 : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return AccessTools.Method(typeof(GClass2098), nameof(GClass2098.Class1480.method_2));
+        }
+        [PatchPostfix]
+        private static void Postfix(GClass2098 __instance)
+        {
+            if (OptionalConditionController.questClass != __instance)
+            {
+                Plugin.Log.LogInfo("Got GClass2098 from Class1480.method_2");
+                OptionalConditionController.questClass = __instance;
+            }
+        }
+    }
+    internal class LocalQuestControllerClassGetter : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return AccessTools.Method(typeof(LocalQuestControllerClass), nameof(LocalQuestControllerClass.Init));
+        }
+        [PatchPostfix]
+        private static void Postfix(LocalQuestControllerClass __instance)
+        {
+            if (OptionalConditionController.localQuestControllerClass != __instance)
+            {
+                Plugin.Log.LogInfo("Got LocalQuestControllerClass from Init");
+                OptionalConditionController.localQuestControllerClass = __instance;
+            }
+        }
     }
 }
