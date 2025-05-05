@@ -41,7 +41,8 @@ public class Plugin : BaseUnityPlugin
         new EnemyKillPatch().Enable();
         new EnterBlindFirePatch().Enable();
         new ExitBlindFirePatch().Enable();
-        new ConditionCompletedPatch().Enable();
+        new CustomConditionChecker().Enable();
+        new VanillaConditionChecker().Enable();
     }
 
     private void Start()

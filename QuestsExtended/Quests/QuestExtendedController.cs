@@ -26,6 +26,7 @@ internal class QuestExtendedController : MonoBehaviour
     private static MedicalQuestController _medController;
     private static PhysicalQuestController _physicalController;
     private static StatCounterQuestController _statCounterController;
+    private static OptionalConditionController _optionalController;
 
     void Awake()
     {
@@ -35,8 +36,10 @@ internal class QuestExtendedController : MonoBehaviour
         _medController = new MedicalQuestController(this);
         _physicalController = new PhysicalQuestController(this);
         _statCounterController = new StatCounterQuestController(this);
+        _optionalController = new OptionalConditionController(this);
 
         _statCounterController.Awake();
+        _optionalController.Awake();
 
 
         if (UnderlyingQuestControllerClassName == null)
@@ -78,6 +81,7 @@ internal class QuestExtendedController : MonoBehaviour
     private void Update()
     {
         _physicalController.Update();
+        _optionalController.Update();
     }
 
     /// <summary>

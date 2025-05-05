@@ -23,10 +23,11 @@ internal class OnGameStartedPatch : ModulePatch
     private static void Postfix(GameWorld __instance)
     {
         __instance.GetOrAddComponent<QuestExtendedController>();
-        CompletedChildConditions saveDataClass = __instance.GetOrAddComponent<CompletedChildConditions>();
+        CompletedSaveData saveDataClass = __instance.GetOrAddComponent<CompletedSaveData>();
         saveDataClass.init();
         PhysicalQuestController.isRaidOver = false;
         PhysicalQuestController.LastPose = "Default";
+        OptionalConditionController.isGameRunning = true;
 
         if (ConfigManager.DumpQuestZones.Value)
         {
@@ -56,6 +57,10 @@ internal class OnGameEndedPatch : ModulePatch
     [PatchPostfix]
     private static void Postfix(GameWorld __instance)
     {
-        __instance.GetComponent<CompletedChildConditions>().SaveCompletedOptionals();
+        CompletedSaveData call = __instance.GetComponent<CompletedSaveData>();
+        call.SaveCompletedMultipleChoice();
+        call.SaveCompletedOptionals();
+        OptionalConditionController.isGameRunning = false;
+        PhysicalQuestController.isRaidOver = true;
     }
 }

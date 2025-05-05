@@ -16,56 +16,62 @@ using SPT.Common.Http;
 using System.Collections;
 using UnityEngine;
 using static LocationScene;
+using static BackendDummyClass;
+using System.Diagnostics;
+using static EFT.UI.InteractionButtonsContainer;
+using static LocalQuestControllerClass;
+using QuestsExtended.Models;
+using QuestsExtended.SaveLoadRelatedClasses;
 
 namespace QuestsExtended.Patches
 {
-    internal class ConditionCompletedPatch : ModulePatch
+    internal class CustomConditionChecker : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.Method(typeof(GClass3719<IConditional>), nameof(GClass3719<IConditional>.SetConditionCurrentValue));
+            return AccessTools.Method(typeof(ConditionProgressChecker), nameof(ConditionProgressChecker.CallConditionChanged));
         }
         [PatchPostfix]
-        private static void Postfix(GClass3719<IConditional> __instance, ref IConditional conditional, ref EQuestStatus status, ref Condition condition)
+        private static void Postfix(ConditionProgressChecker  __instance)
         {
-            if (__instance.gclass3873_0.dictionary_0.TryGetValue(condition.id, out var value))
+            //Plugin.Log.LogInfo($"Let's just log some things. Condition id being called is {__instance.Condition.id}. The current value is {__instance.CurrentValue}. The max value might be {__instance.Condition.value}.");
+            if (__instance.Condition.ParentId != null)
             {
-                Plugin.Log.LogInfo($"Found the condition we called. It's value might be {value.Value}, or maybe {value.int_0}, or {value.string_0} perhaps? It's the first and the second, wonderful!");
-                //THIS WORKS LFGGGGGGGGGGGG
-                foreach (var item in value.Conditional.Conditions)
+                //Plugin.Log.LogInfo($"This is a child condition. The parent id is {__instance.Condition.ParentId}.");
+                if (__instance.CurrentValue >= __instance.Condition.value)
                 {
-                    foreach (var item2 in item.Value.list_0)
-                    {
-                        foreach(var ohGoshTheNestings in item2.ChildConditions)
-                        {
-                            if (ohGoshTheNestings.ParentId == condition.ParentId && ohGoshTheNestings.id == condition.id)
-                            {
-                                //Plugin.Log.LogInfo($"Called a child condition. It's current value should be {value.Value}, and the max value should be {ohGoshTheNestings.value}. If these values equal (or the left is higher than the right, since it doesn't stop counting), let's increment optional conditions.");
-                                if (value.Value >= ohGoshTheNestings.value)
-                                {
-                                    OptionalConditionController.HandleOptionalConditionCompletion(__instance, conditional, condition);
-                                }
-                            }
-                            /*
-                            else
-                            {
-                                Plugin.Log.LogInfo($"Called a child condition but something went wrong. isNecessary is set to {ohGoshTheNestings._isNecessary}. Parent id searched for was {ohGoshTheNestings.ParentId} It's current value should be {value.Value}, and the max value should be {ohGoshTheNestings.value}. ");
-                            }
-                            */
-                        }
-                    }
+                    //Plugin.Log.LogInfo("This child condition is completed... let's try a new HandleOptionalConditionCompletion.");
+                    OptionalConditionController.HandleOptionalConditionCompletion(__instance.Condition);
                 }
+
             }
         }
-        /*
-        public static List<string> ThingWeSend { get; set; } = [];
-
-        public static T ServerRoute<T>(string url, T data = default)
+    }
+    internal class VanillaConditionChecker : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
         {
-            string json = JsonConvert.SerializeObject(data);
-            string req = RequestHandler.PostJson(url, json);
-            return JsonConvert.DeserializeObject<T>(req);
+            return AccessTools.Method(typeof(ConditionCounterManager), nameof(ConditionCounterManager.smethod_0));
         }
-        */
+        [PatchPrefix]
+        private static void Prefix(ConditionCounterManager __instance, int valueToAdd, TaskConditionCounterClass counter, out int __state)
+        {
+            string questId = counter.Conditional.Id;
+            string counterId = counter.Id;
+            //Plugin.Log.LogInfo($"(PREFIX)Quest {questId} is about to change {counterId}'s value by {valueToAdd}, it was {counter.Value}.");
+            __state = counter.Value;
+        }
+        [PatchPostfix]
+        private static void Postfix(ConditionCounterManager __instance, ref int valueToAdd, ref TaskConditionCounterClass counter, int __state)
+        {
+            string questId = counter.Conditional.Id;
+            string counterId = counter.Id;
+            //Plugin.Log.LogInfo($"(POSTFIX)Quest {questId} just changed {counterId}'s value by {valueToAdd}, making it {counter.Value}.");
+            if (__state != counter.Value)
+            {
+                //Plugin.Log.LogWarning($"We got the vanilla condition that just changed: {counterId}. Send it to OCC for processing");
+                OptionalConditionController.HandleVanillaChildConditionChanged(counterId, counter.Value);
+            }
+        }
     }
 }
