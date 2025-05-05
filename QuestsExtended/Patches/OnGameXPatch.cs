@@ -27,6 +27,7 @@ internal class OnGameStartedPatch : ModulePatch
         saveDataClass.init();
         PhysicalQuestController.isRaidOver = false;
         PhysicalQuestController.LastPose = "Default";
+        OptionalConditionController.isGameRunning = true;
 
         if (ConfigManager.DumpQuestZones.Value)
         {
@@ -59,5 +60,7 @@ internal class OnGameEndedPatch : ModulePatch
         CompletedSaveData call = __instance.GetComponent<CompletedSaveData>();
         call.SaveCompletedMultipleChoice();
         call.SaveCompletedOptionals();
+        OptionalConditionController.isGameRunning = false;
+        PhysicalQuestController.isRaidOver = true;
     }
 }

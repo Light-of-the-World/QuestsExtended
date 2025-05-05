@@ -83,7 +83,7 @@ namespace QuestsExtended.SaveLoadRelatedClasses
             }
             else
             {
-                Plugin.Log.LogInfo("No CompletedOptionals.json file found for this profile, starting fresh.");
+                Plugin.Log.LogInfo("No CompletedMultipleChoice.json file found for this profile, starting fresh.");
                 CompletedMultipleChoice = new List<string>();
             }
         }
