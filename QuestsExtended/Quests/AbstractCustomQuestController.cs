@@ -10,6 +10,7 @@ internal abstract class AbstractCustomQuestController
 {
     protected static QuestExtendedController _questController;
     protected Player _player;
+    public static bool isRaidOver;
 
     protected AbstractCustomQuestController(QuestExtendedController questExtendedController)
     {

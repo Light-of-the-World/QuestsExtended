@@ -9,6 +9,7 @@ using QuestsExtended.Utils;
 using SPT.Reflection.Patching;
 using UnityEngine;
 using QuestsExtended.SaveLoadRelatedClasses;
+using SPT.Reflection.Utils;
 
 namespace QuestsExtended.Patches;
 
@@ -22,12 +23,14 @@ internal class OnGameStartedPatch : ModulePatch
     [PatchPostfix]
     private static void Postfix(GameWorld __instance)
     {
+        if (__instance.LocationId.ToLower() == "hideout") return;
+        if (__instance is HideoutGameWorld) return;
+        Plugin.Log.LogInfo("[QE] Raid starting");
         __instance.GetOrAddComponent<QuestExtendedController>();
         CompletedSaveData saveDataClass = __instance.GetOrAddComponent<CompletedSaveData>();
         saveDataClass.init();
-        PhysicalQuestController.isRaidOver = false;
         PhysicalQuestController.LastPose = "Default";
-        OptionalConditionController.isGameRunning = true;
+        AbstractCustomQuestController.isRaidOver = false;
 
         if (ConfigManager.DumpQuestZones.Value)
         {
@@ -47,7 +50,7 @@ internal class OnGameStartedPatch : ModulePatch
         }
     }
 }
-internal class OnGameEndedPatch : ModulePatch
+internal class OnUnregisterPlayerPatch : ModulePatch
 {
     protected override MethodBase GetTargetMethod()
     {
@@ -55,12 +58,17 @@ internal class OnGameEndedPatch : ModulePatch
     }
 
     [PatchPostfix]
-    private static void Postfix(GameWorld __instance)
+    private static void Postfix(GameWorld __instance, ref IPlayer iPlayer)
     {
-        CompletedSaveData call = __instance.GetComponent<CompletedSaveData>();
-        call.SaveCompletedMultipleChoice();
-        call.SaveCompletedOptionals();
-        OptionalConditionController.isGameRunning = false;
-        PhysicalQuestController.isRaidOver = true;
+        if (__instance.LocationId.ToLower() == "hideout") return;
+        if (__instance is HideoutGameWorld) return;
+        if (iPlayer.ProfileId == ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.ProfileId && !AbstractCustomQuestController.isRaidOver)
+        {
+            Plugin.Log.LogInfo("[QE] Raid over.");
+            AbstractCustomQuestController.isRaidOver = true;
+            CompletedSaveData call = __instance.GetComponent<CompletedSaveData>();
+            call.SaveCompletedMultipleChoice();
+            call.SaveCompletedOptionals();
+        }
     }
 }

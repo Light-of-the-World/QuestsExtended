@@ -29,7 +29,6 @@ namespace QuestsExtended.Quests
         public static List<string> _activeQuestIds = new List<string>();
         private static bool alreadyLoaded = false;
         public static GClass2098 questClass = null;
-        public static bool isGameRunning = false;
         public static float questCheckCooldown = 5f;
         public static List<ConditionPair> conditions = new List<ConditionPair>();
 
@@ -42,7 +41,7 @@ namespace QuestsExtended.Quests
 
         public void Update()
         {
-            if (!isGameRunning) return;
+            if (isRaidOver) return;
             questCheckCooldown -= Time.deltaTime;
             if (questCheckCooldown < 0)
             {

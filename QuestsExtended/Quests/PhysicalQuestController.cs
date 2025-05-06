@@ -33,7 +33,6 @@ internal class PhysicalQuestController
     public static bool isMounted = false;
     public static bool isADS = false;
     public static bool isBlindFiring = false;
-    public static bool isRaidOver = false;
 
     //floats
     private static float lastX;

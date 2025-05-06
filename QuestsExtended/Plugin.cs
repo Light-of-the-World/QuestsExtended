@@ -32,7 +32,7 @@ public class Plugin : BaseUnityPlugin
         ConfigManager.InitConfig(Config);
         
         new OnGameStartedPatch().Enable();
-        new OnGameEndedPatch().Enable();
+        new OnUnregisterPlayerPatch().Enable();
         new EnemyDamagePatch().Enable();
         new SearchContainerPatch().Enable();
         new SwitchPatch().Enable();

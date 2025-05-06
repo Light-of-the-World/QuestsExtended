@@ -27,6 +27,7 @@ internal class QuestExtendedController : MonoBehaviour
     private static PhysicalQuestController _physicalController;
     private static StatCounterQuestController _statCounterController;
     private static OptionalConditionController _optionalController;
+    public static bool isRaidOver = false;
 
     void Awake()
     {
