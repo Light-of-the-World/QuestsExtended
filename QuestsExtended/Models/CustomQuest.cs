@@ -10,6 +10,7 @@ public struct CustomQuest
 {
     // Quest to search for the condition on
     public string QuestId;
+    [CanBeNull] public string QuestName;
     [CanBeNull] public bool IsMultipleChoiceStarter;
     public List<CustomCondition> Conditions;
 }

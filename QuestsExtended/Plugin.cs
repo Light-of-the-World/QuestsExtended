@@ -11,7 +11,7 @@ using QuestsExtended.Utils;
 
 namespace QuestsExtended;
 
-[BepInPlugin("com.dirtbikercj.QuestsExtended", "Quests Extended", "1.1.0")]
+[BepInPlugin("com.dirtbikercjandlotw.QuestsExtended", "Quests Extended", "2.0.2")]
 public class Plugin : BaseUnityPlugin
 {
     internal const int TarkovVersion = 35392;
