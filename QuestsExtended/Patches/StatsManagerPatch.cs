@@ -89,7 +89,7 @@ internal class EnterBlindFirePatch : ModulePatch
     {
         if (!__instance.IsAI && blindFireValue !=0)
         {
-            Plugin.Log.LogInfo($"[StatsPatch] Player is blind firing.");
+            //Plugin.Log.LogInfo($"[StatsPatch] Player is blind firing.");
             PhysicalQuestController.isBlindFiring = true;
         }
     }
@@ -106,7 +106,7 @@ internal class ExitBlindFirePatch : ModulePatch
     {
         if (!__instance.IsAI)
         {
-            Plugin.Log.LogInfo($"[StatsPatch] Player is no longer blind firing.");
+            //Plugin.Log.LogInfo($"[StatsPatch] Player is no longer blind firing.");
             PhysicalQuestController.isBlindFiring = false;
         }
     }

@@ -159,6 +159,8 @@ namespace QuestsExtended.Quests
 
         public static void HandleVanillaChildConditionChanged(string conditionId, int currentValue)
         {
+            var conditions = _questController.GetActiveConditions(EQuestConditionGen.CompleteOptionals);
+            if (conditions.Count == 0) return; //No active quests with CompleteOptionals, no need to run this.
             var activeQuests = ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.QuestsData;
             foreach (var quest in activeQuests)
             {

@@ -15,5 +15,6 @@ public enum EQuestConditionGen
     LootItem = 1 << 7,
     ActivatePowerSwitch = 1 << 8,
     CompleteOptionals = 1 << 9,
+    CompleteWorkout = 1 << 10,
     Empty = 1 << 31,
 }

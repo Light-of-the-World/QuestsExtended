@@ -43,6 +43,7 @@ public class Plugin : BaseUnityPlugin
         new ExitBlindFirePatch().Enable();
         new CustomConditionChecker().Enable();
         new VanillaConditionChecker().Enable();
+        new WorkoutPatch().Enable();
     }
 
     private void Start()
