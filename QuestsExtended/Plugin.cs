@@ -44,6 +44,7 @@ public class Plugin : BaseUnityPlugin
         new CustomConditionChecker().Enable();
         new VanillaConditionChecker().Enable();
         new WorkoutPatch().Enable();
+        new FixMalfunctionPatch().Enable();
     }
 
     private void Start()

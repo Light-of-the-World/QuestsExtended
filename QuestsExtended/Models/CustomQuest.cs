@@ -49,10 +49,11 @@ public struct CustomCondition
             }
         }
     }
-
     private string _conditionTypeRaw;
 
     [CanBeNull] public bool RequireMoving;
+    [CanBeNull] public bool HasMultipleConditionTypes;
+    [CanBeNull] public List<string> MultiConditions;
     [CanBeNull] public List<string> Locations;
     [CanBeNull] public List<string> AllowedItems;
     [CanBeNull] public List<string> ForbiddenItems;

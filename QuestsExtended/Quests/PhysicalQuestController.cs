@@ -360,13 +360,13 @@ internal class PhysicalQuestController
         isRaidOver = true;
     }
 
-    public static void PlayerDidWorkout()
+    public static void PlayerDidWorkout(int counter)
     {
         var conditions = _questController.GetActiveConditions(EQuestConditionGen.CompleteWorkout);
         if (conditions.Count == 0) return;
         foreach (var cond in conditions)
         {
-            IncrementCondition(cond, 1f);
+            IncrementCondition(cond, counter);
         }
     }
 

@@ -36,6 +36,16 @@ internal class OnGameStartedPatch : ModulePatch
         {
             DumpTriggerZones();
         }
+        GameObject persistentObject = GameObject.Find("PersistentCounterObject");
+        if (persistentObject != null)
+        {
+            WorkoutCounter counter = persistentObject.GetComponent<WorkoutCounter>();
+            if (counter.counter != 0)
+            {
+                PhysicalQuestController.PlayerDidWorkout(counter.counter);
+            }
+            counter.counter = 0;
+        }
     }
     private static void DumpTriggerZones()
     {

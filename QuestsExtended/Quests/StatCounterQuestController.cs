@@ -20,6 +20,7 @@ namespace QuestsExtended.Quests
 {
     internal class StatCounterQuestController : AbstractCustomQuestController
     {
+        private static bool SniperCooldown = false;
         public StatCounterQuestController(QuestExtendedController questExtendedController)
         : base(questExtendedController)
         {
@@ -69,10 +70,15 @@ namespace QuestsExtended.Quests
                 else if (damage.Weapon is SniperRifleItemClass)
                 {
                     conditionstoAdd |= EQuestConditionCombat.DamageWithSnipers;
-                    var specialcondition2 = _questController.GetActiveConditions(EQuestConditionCombat.TotalShotDistanceWithSnipers);
-                    foreach (var cond in specialcondition2)
+                    if (!SniperCooldown)
                     {
-                        IncrementCondition(cond, (int)Math.Round(distance, 0));
+                        SniperCooldown = true;
+                        var specialcondition2 = _questController.GetActiveConditions(EQuestConditionCombat.TotalShotDistanceWithSnipers);
+                        foreach (var cond in specialcondition2)
+                        {
+                            IncrementCondition(cond, (int)Math.Round(distance, 0));
+                        }
+                        StaticManager.BeginCoroutine(StartSniperCooldown());
                     }
                 }
                 else if (damage.Weapon is ThrowWeapItemClass)
@@ -159,15 +165,57 @@ namespace QuestsExtended.Quests
                 //Plugin.Log.LogInfo("Player scored a kill while aiming down sight. Remove this logger before publishing.");
                 conditionsToAdd |= EQuestConditionCombat.KillsWhileADS;
             }
-            if (!PhysicalQuestController.isADS && damageInfo.Weapon is RevolverItemClass)
+            if (!PhysicalQuestController.isADS)
             {
-                //Plugin.Log.LogInfo("Player scored a kill with a revolver while hip firing. Remove this logger before publishing.");
-                conditionsToAdd |= EQuestConditionCombat.RevolverKillsWithoutADS;
+                conditionsToAdd |= EQuestConditionCombat.KillsWithoutADS;
+                if (damageInfo.Weapon is RevolverItemClass)
+                {
+                    //Plugin.Log.LogInfo("Player scored a kill with a revolver while hip firing. Remove this logger before publishing.");
+                    conditionsToAdd |= EQuestConditionCombat.RevolverKillsWithoutADS;
+                }
             }
             if (PhysicalQuestController.isBlindFiring)
             {
                 //Plugin.Log.LogInfo("Player got a kill while blind firing. Remove this logger before publishing.");
                 conditionsToAdd |= EQuestConditionCombat.KillsWhileBlindFiring;
+            }
+            var conditions = _questController.GetActiveConditions(conditionsToAdd);
+            foreach (var cond in conditions)
+            {
+                IncrementCondition(cond, 1);
+            }
+        }
+        //Troubleshooting / malfunctions
+        public static void MalfunctionFixed(Weapon weapon)
+        {
+            EQuestConditionMisc1 conditionsToAdd = EQuestConditionMisc1.FixAnyMalfunction;
+            if (weapon is AssaultCarbineItemClass || weapon is AssaultRifleItemClass)
+            {
+                conditionsToAdd |= EQuestConditionMisc1.FixARMalfunction;
+            }
+            else if (weapon is MarksmanRifleItemClass)
+            {
+                conditionsToAdd |= EQuestConditionMisc1.FixDMRMalfunction;
+            }
+            else if (weapon is MachineGunItemClass)
+            {
+                conditionsToAdd |= EQuestConditionMisc1.FixLMGMalfunction;
+            }
+            else if (weapon is PistolItemClass)
+            {
+                conditionsToAdd |= EQuestConditionMisc1.FixPistolMalfunction;
+            }
+            else if (weapon is ShotgunItemClass)
+            {
+                conditionsToAdd |= EQuestConditionMisc1.FixShotgunMalfunction;
+            }
+            else if (weapon is SmgItemClass)
+            {
+                conditionsToAdd |= EQuestConditionMisc1.FixSMGMalfunction;
+            }
+            else if (weapon is SniperRifleItemClass)
+            {
+                conditionsToAdd |= EQuestConditionMisc1.FixSniperMalfunction;
             }
             var conditions = _questController.GetActiveConditions(conditionsToAdd);
             foreach (var cond in conditions)
@@ -233,6 +281,11 @@ namespace QuestsExtended.Quests
             SwitchCooldown = true;
             yield return new WaitForSeconds(5f); //Players will not be hitting multiple power levers in 5 seconds, and as mentioned earlier, the switch method likes to call multiple times.
             SwitchCooldown = false;
+        }
+        private static IEnumerator StartSniperCooldown()
+        {
+            yield return new WaitForSeconds(0.2f);
+            SniperCooldown = false;
         }
     }
 }

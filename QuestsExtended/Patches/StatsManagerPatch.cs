@@ -9,6 +9,7 @@ using HarmonyLib;
 using QuestsExtended.Quests;
 using QuestsExtended.Utils;
 using SPT.Reflection.Patching;
+using SPT.Reflection.Utils;
 
 namespace QuestsExtended.Patches;
 
@@ -118,27 +119,6 @@ internal class DestroyLimbsPatch : ModulePatch
     {
         return AccessTools.Method(typeof(ActiveHealthController), nameof(ActiveHealthController.ApplyDamage));
     }
-    /*
-    [PatchPrefix]
-    private static void Prefix(out ActiveHealthController.BodyPartState __state)
-    {
-        __state = new ActiveHealthController.BodyPartState();
-    }
-
-    [PatchPostfix]
-    private static void Postfix(ActiveHealthController.BodyPartState __state, ActiveHealthController __instance, ref DamageInfoStruct damageInfo, ref EBodyPart bodyPart)
-    {
-        if (!damageInfo.Player.IsAI)
-        {
-            GClass2814<ActiveHealthController.GClass2813>.BodyPartState bodyPartState = __instance.Dictionary_0[bodyPart];
-            if (bodyPartState.IsDestroyed && bodyPartState.Health.AtMinimum && !__state.IsDestroyed)
-            {
-                Plugin.Log.LogInfo("Player just destroyed a body part.");
-                //StatCounterQuestController.BodyPartDestroyed(__instance, damageInfo, bodyPart);
-            }
-        }
-    }
-    */
     [PatchPrefix]
     private static void Prefix(ActiveHealthController __instance, DamageInfoStruct damageInfo, EBodyPart bodyPart)
     {
@@ -154,5 +134,22 @@ internal class DestroyLimbsPatch : ModulePatch
                 StatCounterQuestController.BodyPartDestroyed(damageInfo, bodyPart);
             }
         }
+    }
+}
+
+internal class FixMalfunctionPatch : ModulePatch
+{
+    protected override MethodBase GetTargetMethod()
+    {
+        return AccessTools.Method(typeof(Player.PlayerOwnerInventoryController), nameof(Player.PlayerOwnerInventoryController.CallMalfunctionRepaired));
+    }
+    [PatchPostfix]
+    private static void Postfix(Player.PlayerOwnerInventoryController __instance, ref Weapon weapon)
+    {
+        if (__instance.Profile.Id == ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.Id)
+        {
+            StatCounterQuestController.MalfunctionFixed(weapon);
+        }
+        else Plugin.Log.LogInfo($"Malfunction was fixed, but the id of the instance was {__instance.Profile.Id}");
     }
 }

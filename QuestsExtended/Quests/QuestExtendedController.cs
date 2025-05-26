@@ -118,6 +118,11 @@ internal class QuestExtendedController : MonoBehaviour
             enumType = typeof(EQuestConditionHealth);
             enumValues = Enum.GetValues(typeof(EQuestConditionHealth));
         }
+        else if (conditionType.GetType() == typeof(EQuestConditionMisc1))
+        {
+            enumType = typeof(EQuestConditionMisc1);
+            enumValues = Enum.GetValues(typeof(EQuestConditionMisc1));
+        }
         else
         {
             Plugin.Log.LogWarning($"Unsupported condition type: {conditionType.GetType().Name}. Defaulting to EQuestConditionGen.");
@@ -157,6 +162,11 @@ internal class QuestExtendedController : MonoBehaviour
                                     break;
                                 }
                             }
+                        }
+                        else if (cond.Locations == null)
+                        {
+                            activeOnLocation.Add(cond);
+                            break;
                         }
                         break;  // Exit once we find a match
                     }
