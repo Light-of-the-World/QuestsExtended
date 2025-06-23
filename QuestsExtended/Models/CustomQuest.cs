@@ -21,6 +21,9 @@ public struct CustomCondition
     public EQuestConditionGen GenConditionType;
     public EQuestConditionCombat CombatConditionType;
     public EQuestConditionHealth HealthConditionType;
+    public EQuestConditionMisc1 Misc1ConditionType;
+    public EQuestConditionHideout HideoutConditionType;
+    public EQuestConditionTrading TradingConditionType;
 
     [JsonProperty("ConditionType")] // This maps the JSON "ConditionType" to this property
     public string ConditionTypeRaw
@@ -42,6 +45,18 @@ public struct CustomCondition
             {
                 HealthConditionType = health;
             }
+            else if (Enum.TryParse(value, out EQuestConditionMisc1 misc))
+            {
+                Misc1ConditionType = misc;
+            }
+            else if (Enum.TryParse(value, out EQuestConditionHideout hide))
+            {
+                HideoutConditionType = hide;
+            }
+            else if (Enum.TryParse(value, out EQuestConditionTrading trade))
+            {
+                TradingConditionType = trade;
+            }
             else
             {
                 // Optional: log unknown condition type
@@ -62,4 +77,8 @@ public struct CustomCondition
     [CanBeNull] public List<EBodyPart> ExcludeBodyParts;
     [CanBeNull] public List<EDamageType> DamageTypes;
     [CanBeNull] public List<string> QuestsToStart;
+    [CanBeNull] public List<string> Workstations;
+    [CanBeNull] public List<string> CyclicWorkstations;
+    [CanBeNull] public List<string> TraderIds;
+    [CanBeNull] public List<string> CurrencyTypes;
 }

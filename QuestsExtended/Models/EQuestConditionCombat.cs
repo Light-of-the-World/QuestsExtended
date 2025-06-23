@@ -31,5 +31,5 @@ public enum EQuestConditionCombat
     DamageToArmourWithShotguns = 1 << 23,
     TotalShotDistanceWithSnipers = 1 << 24,
     RevolverKillsWithoutADS = 1 << 25,
-    Empty = 1 << 31,
+    EmptyC = 1 << 31,
 }

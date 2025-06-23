@@ -43,8 +43,17 @@ public class Plugin : BaseUnityPlugin
         new ExitBlindFirePatch().Enable();
         new CustomConditionChecker().Enable();
         new VanillaConditionChecker().Enable();
-        new WorkoutPatch().Enable();
         new FixMalfunctionPatch().Enable();
+        new QEFromTraderScreensGroupPatch().Enable();
+        new IHopeThisWorks().Enable();
+        new CheckForQECBeforeHideout().Enable();
+        new WorkoutPatch().Enable();
+        new CollectCraftedItemPatch().Enable();
+        /*
+        new QEBuyPatch().Enable();
+        new QESellPatch().Enable();
+        */
+        new QETransactionPatch().Enable();
     }
 
     private void Start()

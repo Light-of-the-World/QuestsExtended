@@ -18,4 +18,5 @@ public enum EQuestConditionMisc1
     FixShotgunMalfunction = 1 << 5,
     FixSMGMalfunction= 1 << 6,
     FixSniperMalfunction = 1 << 7,
+    EmptyM = 1 << 31,
 }

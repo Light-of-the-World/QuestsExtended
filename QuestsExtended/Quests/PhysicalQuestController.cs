@@ -1,27 +1,29 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using Comfort.Common;
 using EFT;
 using EFT.Quests;
 using HarmonyLib;
+using Newtonsoft.Json;
 using QuestsExtended.Models;
+using SPT.Reflection.Utils;
 using UnityEngine;
 
 namespace QuestsExtended.Quests;
 
-internal class PhysicalQuestController
-    : AbstractCustomQuestController
+internal class PhysicalQuestController : AbstractCustomQuestController
 {
-    private static BasePhysicalClass _physical;
+    public static BasePhysicalClass _physical;
     private static Vector3 _playerPos;
     public static MovementContext _movementContext;
 
     private static bool isEcumbered;
     private static bool isEcumberedRunning;
-    
     private static bool isOverEncumbered;
     private static bool isOverEncumberedRunning;
     
@@ -33,6 +35,7 @@ internal class PhysicalQuestController
     public static bool isMounted = false;
     public static bool isADS = false;
     public static bool isBlindFiring = false;
+    public static bool isRunning = false;
 
     //floats
     private static float lastX;
@@ -44,9 +47,11 @@ internal class PhysicalQuestController
 
     //float storage (I'm sorry CJ)
     private static float _moveAllfloat;
+    private static float _moveRunfloat;
     private static float _moveCrouchedfloat;
     private static float _moveProneFloat;
     private static float _moveSilentFloat;
+
     
     //Debug things
     /*
@@ -66,7 +71,6 @@ internal class PhysicalQuestController
         _physical.OverEncumberedChanged += SetOverEncumbered;
         _movementContext.OnPoseChanged += SetPose;
         _movementContext.OnCharacterControllerSpeedLimitChanged += SetClampedSpeed;
-        _player.OnPlayerDeadOrUnspawn += RaidOver;
 
         // Flag for encumbered
         if (_physical.Boolean_0)
@@ -91,12 +95,14 @@ internal class PhysicalQuestController
         _physical.OverEncumberedChanged -= SetOverEncumbered;
         _movementContext.OnPoseChanged -= SetPose;
         _movementContext.OnCharacterControllerSpeedLimitChanged -= SetClampedSpeed;
-        _player.OnPlayerDeadOrUnspawn -= RaidOver;
+        //_physical = null;
+        //_movementContext = null;
     }
 
     public void Update()
     {
         if (isRaidOver) return;
+        if (_physical == null || _movementContext == null || _playerPos == null) return;
         if (isEcumbered && !isEcumberedRunning)
             StaticManager.BeginCoroutine(EncumberedTimer());
         
@@ -116,6 +122,7 @@ internal class PhysicalQuestController
         */
         isMounted = _movementContext.IsInMountedState;
         isADS = _player.HandsController.IsAiming;
+        isRunning = _physical.Sprinting;
     }
 
     private static void SetEncumbered(bool encumbered)
@@ -270,6 +277,15 @@ internal class PhysicalQuestController
                     return floatResult;
                 }
             }
+            if (isRunning)
+            {
+                _moveRunfloat += distance;
+                if (_moveRunfloat > 1f)
+                {
+                    int floatResult = (int)Math.Round(_moveRunfloat, 0);
+                    return floatResult;
+                }
+            }
             if (_moveAllfloat > 1f)
             {
                 int floatResult = (int)Math.Round(_moveAllfloat, 0);
@@ -309,11 +325,9 @@ internal class PhysicalQuestController
                 return;
             }
         }
+        if (isRunning) conditionsToCheck |= EQuestConditionGen.MoveDistanceWhileRunning;
 
-        if (Silent)
-        {
-            conditionsToCheck |= EQuestConditionGen.MoveDistanceWhileSilent;
-        }
+        if (Silent) conditionsToCheck |= EQuestConditionGen.MoveDistanceWhileSilent;
 
         // Retrieve active conditions just once
         var conditions = _questController.GetActiveConditions(conditionsToCheck);
@@ -354,20 +368,6 @@ internal class PhysicalQuestController
         MovementXPCooldown = true;
         yield return new WaitForSeconds(0.15f);
         MovementXPCooldown = false;
-    }
-    private static void RaidOver(Player player)
-    {
-        isRaidOver = true;
-    }
-
-    public static void PlayerDidWorkout(int counter)
-    {
-        var conditions = _questController.GetActiveConditions(EQuestConditionGen.CompleteWorkout);
-        if (conditions.Count == 0) return;
-        foreach (var cond in conditions)
-        {
-            IncrementCondition(cond, counter);
-        }
     }
 
     /*

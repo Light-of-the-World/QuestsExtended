@@ -9,13 +9,21 @@ namespace QuestsExtended.Quests;
 internal abstract class AbstractCustomQuestController
 {
     protected static QuestExtendedController _questController;
-    protected Player _player;
-    public static bool isRaidOver;
+    public Player _player;
+    public static bool isRaidOver = true;
 
     protected AbstractCustomQuestController(QuestExtendedController questExtendedController)
     {
         _questController = questExtendedController;
-        _player = Singleton<GameWorld>.Instance.MainPlayer;
+        if (Singleton<GameWorld>.Instance != null)
+        {
+            _player = Singleton<GameWorld>.Instance.MainPlayer;
+        }
+        else
+        {
+            _player = null;
+            Plugin.Log.LogInfo("GameWorld.Instance was null during AbstractCustomQuestController construction (likely main menu).");
+        }
     }
 
     /// <summary>

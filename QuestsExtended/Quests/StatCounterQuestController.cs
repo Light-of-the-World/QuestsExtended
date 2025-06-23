@@ -134,7 +134,7 @@ namespace QuestsExtended.Quests
         }
         public static void EnemyKillProcessor(DamageInfoStruct damageInfo)
         {
-            EQuestConditionCombat conditionsToAdd = EQuestConditionCombat.Empty;
+            EQuestConditionCombat conditionsToAdd = EQuestConditionCombat.EmptyC;
             if (PhysicalQuestController.isCrouched)
             {
                 //Plugin.Log.LogInfo("Player scored a kill while crouched. Remove this logger before publishing.");

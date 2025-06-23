@@ -18,6 +18,7 @@ using System.Security.Policy;
 using UnityEngine;
 using Comfort.Common;
 using SPT.Reflection.Utils;
+using EFT;
 namespace QuestsExtended.Quests
 {
     internal class OptionalConditionController : AbstractCustomQuestController
@@ -31,11 +32,11 @@ namespace QuestsExtended.Quests
         public static GClass2098 questClass = null;
         public static float questCheckCooldown = 5f;
         public static List<ConditionPair> conditions = new List<ConditionPair>();
-
         public void Awake()
         {
             conditions.Clear();
-            conditions = _questController.GetActiveConditions(EQuestConditionGen.CompleteOptionals);
+            if (_questController != null) conditions = _questController.GetActiveConditions(EQuestConditionGen.CompleteOptionals & EQuestConditionGen.EmptyWithQuestStarter);
+            else Plugin.Log.LogWarning("_questController was null on OptionalConditionController.Awake().");
             //Plugin.Log.LogInfo($"There are {conditions.Count} condition pairs ready for Optional Tasks");
         }
 
@@ -71,19 +72,61 @@ namespace QuestsExtended.Quests
             }
             if (!foundCondition)
             {
-                Plugin.Log.LogWarning("Condition not found, updating list and trying again");
-                conditions = _questController.GetActiveConditions(EQuestConditionGen.CompleteOptionals);
-                foreach (var cond in conditions)
+                Plugin.Log.LogWarning("Condition not found, Checking some things");
+                if (_questController == null)
                 {
-                    if (cond.Condition.ChildConditions.Contains(condition))
+                    Plugin.Log.LogInfo($"_questController is null. Likely in the main menu trying to start a new quest. Conditionid we got is {condition.id}. Just to make sure things are loaded, we currently have {Plugin.Quests.Count} quests loaded. Overriding...");
+                    foreach (var quest in Plugin.Quests)
                     {
-                        foundCondition = true; correctCond = cond; break;
+                        if (quest.Value.IsMultipleChoiceStarter)
+                        {
+                            foreach (var overrideCond in quest.Value.Conditions)
+                            {
+                                if (overrideCond.ConditionId == condition.id)
+                                {
+                                    Plugin.Log.LogInfo("Got the condition, updating quests.");
+                                    SendQuestIdsForEditing<List<RawQuestClass>>(overrideCond.QuestsToStart);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    var conditions = _questController.GetActiveConditions(EQuestConditionGen.CompleteOptionals);
+                    foreach (var cond3 in conditions)
+                    {
+                        if (cond3.Condition.ChildConditions.Contains(condition))
+                        {
+                            foundCondition = true; correctCond = cond3; break;
+                        }
+                    }
+                    if (!foundCondition)
+                    {
+                        Plugin.Log.LogInfo("_questController was not null, but we still don't have the condition. Most likely a quest that starts a new quest the QE way. Overriding...");
+                        foreach (var quest in Plugin.Quests)
+                        {
+                            if (quest.Value.IsMultipleChoiceStarter)
+                            {
+                                foreach (var overrideCond in quest.Value.Conditions)
+                                {
+                                    if (overrideCond.ConditionId == condition.id)
+                                    {
+                                        Plugin.Log.LogInfo("Got the condition, updating quests.");
+                                        SendQuestIdsForEditing<List<RawQuestClass>>(overrideCond.QuestsToStart);
+                                        return;
+                                    }
+                                }
+                                break;
+                            }
+                        }
                     }
                 }
             }
             if (!foundCondition)
             {
-                Plugin.Log.LogError("Condition is still not found. We have an issue.");
+                Plugin.Log.LogError("Condition not found anywhere, we have an issue");
                 return;
             }
             if (CompletedSaveData.CompletedOptionals.Contains(condition.id))
@@ -91,54 +134,120 @@ namespace QuestsExtended.Quests
                 //Plugin.Log.LogInfo("Condition was already within CompletedOptionals list");
                 return;
             }
-            CompletedSaveData.CompletedOptionals.Add(condition.id);
-            //Plugin.Log.LogInfo($"We are adding the id {condition.id} to CompletedOptionals and increasing the CompleteOptionals condition by 1.");
-            IncrementCondition(correctCond, 1);
-
-            if (!Plugin.Quests.TryGetValue(correctCond.Quest.Id, out CustomQuest customQuest))
+            if (foundCondition)
             {
-                Plugin.Log.LogWarning($"StartMultiChoiceQuest: Could not find CustomQuest data for quest ID {correctCond.Quest.Id}");
-                return;
+                CompletedSaveData.CompletedOptionals.Add(condition.id);
+                //Plugin.Log.LogInfo($"We are adding the id {condition.id} to CompletedOptionals and increasing the CompleteOptionals condition by 1.");
+                IncrementCondition(correctCond, 1);
             }
-
-            CustomCondition completedCondition = default;
-            bool conditionFound = false;
-
-            foreach (CustomCondition cond2 in customQuest.Conditions)
+            if (!foundCondition)
             {
-                if (cond2.ConditionId == condition.id)
+                var newConditions = conditions = _questController.GetActiveConditions(EQuestConditionGen.EmptyWithQuestStarter);
+                foreach (var cond in conditions)
                 {
-                    completedCondition = cond2;
-                    conditionFound = true;
-                    //Plugin.Log.LogInfo($"Located the completed condition within CustomConditions: {cond2.ConditionId}");
-                    break;
+                    if (cond.Condition == condition)
+                    {
+                        foundCondition = true; correctCond = cond; break;
+                    }
+                    else
+                    {
+                        Plugin.Log.LogError("Condition is not found anywhere! This probably shouldn't happen.");
+                        return;
+                    }
                 }
-            }
-
-            if (!conditionFound || !customQuest.IsMultipleChoiceStarter)
-            {
-                return;
-            }
-
-            if (completedCondition.QuestsToStart != null && completedCondition.QuestsToStart.Count > 0)
-            {
-                if (CompletedSaveData.CompletedMultipleChoice.Contains(correctCond.Quest.Id)) return;
-                CompletedSaveData.CompletedMultipleChoice.Add(correctCond.Quest.Id);
-                //Plugin.Log.LogInfo($"We are adding the id {correctCond.Quest.Id} to CompletedMultipleChoice and attempting to load the correct quests");
-                //Plugin.Log.LogInfo($"StartMultiChoiceQuest: Sending {completedCondition.QuestsToStart.Count} quest(s) to the server.");
-                foreach (string questToStart in completedCondition.QuestsToStart)
+                if (conditions.Count == 0)
                 {
-                    //Plugin.Log.LogInfo($"StartMultiChoiceQuest: Queued quest ID to start -> {questToStart}");
+                    Plugin.Log.LogWarning("Condition for starting a new quest wasn't found. We might be in the main menu.");
                 }
-                //Plugin.Log.LogWarning("Running a method to try and set the quest to completed, expect crashes"); //NOT CRASHING ANYMORE CAUSE IT WORKS!
-                SendQuestIdsForEditing<List<RawQuestClass>>(completedCondition.QuestsToStart);
+                if (!Plugin.Quests.TryGetValue(correctCond.Quest.Id, out CustomQuest customQuest))
+                {
+                    Plugin.Log.LogWarning($"StartMultiChoiceQuest: Could not find CustomQuest data for quest ID {correctCond.Quest.Id}");
+                    return;
+                }
 
+                CustomCondition completedCondition = default;
+                bool conditionFound = false;
+                foreach (CustomCondition cond2 in customQuest.Conditions)
+                {
+                    if (cond2.ConditionId == condition.id)
+                    {
+                        completedCondition = cond2;
+                        conditionFound = true;
+                        //Plugin.Log.LogInfo($"Located the completed condition within CustomConditions: {cond2.ConditionId}");
+                        break;
+                    }
+                }
+
+                if (!conditionFound || !customQuest.IsMultipleChoiceStarter)
+                {
+                    return;
+                }
+
+                if (completedCondition.QuestsToStart != null && completedCondition.QuestsToStart.Count > 0)
+                {
+                    if (CompletedSaveData.CompletedMultipleChoice.Contains(correctCond.Quest.Id)) return;
+                    CompletedSaveData.CompletedMultipleChoice.Add(correctCond.Quest.Id);
+                    //Plugin.Log.LogInfo($"We are adding the id {correctCond.Quest.Id} to CompletedMultipleChoice and attempting to load the correct quests");
+                    //Plugin.Log.LogInfo($"StartMultiChoiceQuest: Sending {completedCondition.QuestsToStart.Count} quest(s) to the server.");
+                    foreach (string questToStart in completedCondition.QuestsToStart)
+                    {
+                        //Plugin.Log.LogInfo($"StartMultiChoiceQuest: Queued quest ID to start -> {questToStart}");
+                    }
+                    //Plugin.Log.LogWarning("Running a method to try and set the quest to completed, expect crashes"); //NOT CRASHING ANYMORE CAUSE IT WORKS!
+                    SendQuestIdsForEditing<List<RawQuestClass>>(completedCondition.QuestsToStart);
+
+                }
+                else
+                {
+                    Plugin.Log.LogError($"StartMultiChoiceQuest: No QuestsToStart defined for condition {correctCond.Condition.id}.");
+                }
             }
             else
             {
-                Plugin.Log.LogError($"StartMultiChoiceQuest: No QuestsToStart defined for condition {correctCond.Condition.id}.");
+                if (!Plugin.Quests.TryGetValue(correctCond.Quest.Id, out CustomQuest customQuest))
+                {
+                    Plugin.Log.LogWarning($"StartMultiChoiceQuest: Could not find CustomQuest data for quest ID {correctCond.Quest.Id}");
+                    return;
+                }
+
+                CustomCondition completedCondition = default;
+                bool conditionFound = false;
+                foreach (CustomCondition cond2 in customQuest.Conditions)
+                {
+                    if (cond2.ConditionId == condition.id)
+                    {
+                        completedCondition = cond2;
+                        conditionFound = true;
+                        //Plugin.Log.LogInfo($"Located the completed condition within CustomConditions: {cond2.ConditionId}");
+                        break;
+                    }
+                }
+
+                if (!conditionFound || !customQuest.IsMultipleChoiceStarter)
+                {
+                    return;
+                }
+
+                if (completedCondition.QuestsToStart != null && completedCondition.QuestsToStart.Count > 0)
+                {
+                    if (CompletedSaveData.CompletedMultipleChoice.Contains(correctCond.Quest.Id)) return;
+                    CompletedSaveData.CompletedMultipleChoice.Add(correctCond.Quest.Id);
+                    //Plugin.Log.LogInfo($"We are adding the id {correctCond.Quest.Id} to CompletedMultipleChoice and attempting to load the correct quests");
+                    //Plugin.Log.LogInfo($"StartMultiChoiceQuest: Sending {completedCondition.QuestsToStart.Count} quest(s) to the server.");
+                    foreach (string questToStart in completedCondition.QuestsToStart)
+                    {
+                        //Plugin.Log.LogInfo($"StartMultiChoiceQuest: Queued quest ID to start -> {questToStart}");
+                    }
+                    //Plugin.Log.LogWarning("Running a method to try and set the quest to completed, expect crashes"); //NOT CRASHING ANYMORE CAUSE IT WORKS!
+                    SendQuestIdsForEditing<List<RawQuestClass>>(completedCondition.QuestsToStart);
+
+                }
+                else
+                {
+                    Plugin.Log.LogError($"StartMultiChoiceQuest: No QuestsToStart defined for condition {correctCond.Condition.id}.");
+                }
             }
-        }   
+        }
 
         private class ServerResponse<T>
         {
