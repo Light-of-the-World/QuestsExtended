@@ -68,6 +68,7 @@ public struct CustomCondition
 
     [CanBeNull] public bool RequireMoving;
     [CanBeNull] public bool HasMultipleConditionTypes;
+    [CanBeNull] public bool IsFail;
     [CanBeNull] public List<string> MultiConditions;
     [CanBeNull] public List<string> Locations;
     [CanBeNull] public List<string> AllowedItems;

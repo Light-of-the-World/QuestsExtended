@@ -19,6 +19,8 @@ using TMPro;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System;
+using System.Globalization;
+using System.Runtime.Remoting.Lifetime;
 
 namespace QuestsExtended.Patches
 {
@@ -40,7 +42,7 @@ namespace QuestsExtended.Patches
             MenuUI menuUI = MenuUI.Instance;
             if (menuUI.GetComponent<QuestExtendedController>() != null)
             {
-                Plugin.Log.LogInfo("(QE) Controller already exists, updating trader id.");
+                Plugin.Log.LogInfo("(QE) Controller already exists");
             }
             QuestExtendedController controller = menuUI.GetOrAddComponent<QuestExtendedController>();
             if (controller.hasCompletedInitMM == false)
@@ -48,8 +50,11 @@ namespace QuestsExtended.Patches
                 controller.hasCompletedInitMM = true;
                 QuestExtendedController.isInMainMenu = true;
                 AbstractQuestControllerClass sendingController = __instance.AbstractQuestControllerClass;
-                Plugin.Log.LogInfo("Running InitForMainMenu. Remove this logger before publishing.");
+                //Plugin.Log.LogInfo("Running InitForMainMenu. Remove this logger before publishing.");
                 controller.InitFromMainMenu(sendingController);
+                CompletedSaveData completedSaveData = menuUI.GetOrAddComponent<CompletedSaveData>();
+                completedSaveData.init();
+                OptionalConditionController.saveData = completedSaveData;
                 Plugin.Log.LogInfo($"(QE) Quest Controller created by TradingScreen.");
             }
         }
@@ -134,7 +139,31 @@ namespace QuestsExtended.Patches
 
         }
     }
-    
+
+    internal class MainMenuControllerGetterPatch : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return AccessTools.Method(typeof(MainMenuControllerClass), nameof(MainMenuControllerClass.method_5));
+        }
+
+        [PatchPostfix]
+        private static void Postfix(MainMenuControllerClass __instance)
+        {
+            Plugin.Log.LogInfo("MMCC.method_5 ran");
+            if (OptionalConditionController.mainMenuControllerClass != __instance) OptionalConditionController.mainMenuControllerClass = __instance;
+            if (AbstractCustomQuestController.ShowResetMessage == true)
+            {
+                Plugin.Log.LogInfo("Trying to create a reset message");
+                AbstractCustomQuestController.ShowResetMessage = false;
+                PreloaderUI preloaderUi = Singleton<PreloaderUI>.Instance;
+                string title = "Quests Extended Notice";
+                string description = "The menu is being reset by Quests Extended. Nothing is broken, don't worry. If this happened, it is because you have a new quest available 'The Quests Extended Way'. ";
+                Singleton<PreloaderUI>.Instance.ShowCriticalErrorScreen(title, description, ErrorScreen.EButtonType.OkButton, 15);
+            }
+        }
+    }
+
     /*
     internal class WillThisWork : ModulePatch
     {

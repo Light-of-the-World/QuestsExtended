@@ -72,16 +72,18 @@ internal class OnUnregisterPlayerPatch : ModulePatch
         if (__instance is HideoutGameWorld) return;
         if (iPlayer.ProfileId == ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.ProfileId)
         {
-            Plugin.Log.LogInfo("[QE] Raid over.");
-            CompletedSaveData call = __instance.GetComponent<CompletedSaveData>();
-            call.SaveCompletedMultipleChoice();
-            QuestExtendedController controller = __instance.GetComponent<QuestExtendedController>();
-            if (controller != null) Plugin.Log.LogInfo("We successfully got the QE controller, attempting to remove it");
-            else return;
-            controller.OnDestroy();
-            AbstractCustomQuestController.isRaidOver = true;
-            QuestExtendedController.isRaidOver = true;
-            call.SaveCompletedOptionals();
+            if (!AbstractCustomQuestController.isRaidOver)
+            {
+                AbstractCustomQuestController.isRaidOver = true;
+                Plugin.Log.LogInfo("[QE] Raid over.");
+                CompletedSaveData call = __instance.GetComponent<CompletedSaveData>();
+                call.SaveCompletedMultipleChoice();
+                QuestExtendedController controller = __instance.GetComponent<QuestExtendedController>();
+                if (controller != null) Plugin.Log.LogInfo("We successfully got the QE controller, attempting to remove it");
+                else return;
+                controller.OnDestroy();
+                call.SaveCompletedOptionals();
+            }
         }
     }
 }

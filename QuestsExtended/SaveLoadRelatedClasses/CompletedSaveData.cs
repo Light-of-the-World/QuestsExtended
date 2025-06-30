@@ -11,9 +11,11 @@ namespace QuestsExtended.SaveLoadRelatedClasses
     {
         public static List<string> CompletedOptionals = new List<string>();
         public static List<string> CompletedMultipleChoice = new List<string>();
+        public bool hasDoneInit = false;
 
         public void init()
         {
+            hasDoneInit = true;
             LoadCompletedOptionals();
             LoadCompletedMultipleChoice();
         }
@@ -26,8 +28,14 @@ namespace QuestsExtended.SaveLoadRelatedClasses
                 Directory.CreateDirectory(directory);
             string fileName = ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.ProfileId + "_CompletedOptionals.json";
             string path = Path.Combine(directory, fileName);
+            /*
             if (!File.Exists(path))
                 File.Create(path);
+            */
+            if (!File.Exists(path))
+            {
+                using (File.Create(path)) { } // Immediately close it
+            }
             string data = JsonConvert.SerializeObject(CompletedOptionals, Formatting.Indented);
             File.WriteAllText(path, data);
             Plugin.Log.LogInfo($"Saved {CompletedOptionals.Count} optional condition(s) to file.");
@@ -61,8 +69,14 @@ namespace QuestsExtended.SaveLoadRelatedClasses
                 Directory.CreateDirectory(directory);
             string fileName = ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.ProfileId + "_CompletedMultipleChoice.json";
             string path = Path.Combine(directory, fileName);
+            /*
             if (!File.Exists(path))
                 File.Create(path);
+            */
+            if (!File.Exists(path))
+            {
+                using (File.Create(path)) { } // Immediately close it
+            }
             string data = JsonConvert.SerializeObject(CompletedMultipleChoice, Formatting.Indented);
             File.WriteAllText(path, data);
             Plugin.Log.LogInfo($"Saved {CompletedMultipleChoice.Count} completed multiple choice quests to file.");

@@ -54,6 +54,11 @@ public class Plugin : BaseUnityPlugin
         new QESellPatch().Enable();
         */
         new QETransactionPatch().Enable();
+        new MainMenuControllerGetterPatch().Enable();
+        new BSGWHYISYOURCODELIKETHIS().Enable();
+        //new CheckForMultiChoiceConditionActivationPatch1().Enable();
+        //new CheckForMultiChoiceConditionActivationPatch2().Enable();
+        //new CheckForMultiChoiceConditionActivationPatch3().Enable();
     }
 
     private void Start()

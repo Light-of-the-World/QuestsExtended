@@ -20,6 +20,9 @@
         <Reference Include="0Harmony">
             <HintPath>..\..\..\BepinEx\Core\0Harmony.dll</HintPath>
         </Reference>
+        <Reference Include="Comfort.Unity">
+          <HintPath>..\..\..\EscapeFromTarkov_Data\Managed\Comfort.Unity.dll</HintPath>
+        </Reference>
         <Reference Include="Spt.Common">
             <HintPath>..\..\..\BepinEx\Plugins\spt\SPT-Common.dll</HintPath>
         </Reference>

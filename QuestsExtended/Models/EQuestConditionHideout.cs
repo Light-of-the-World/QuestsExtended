@@ -7,8 +7,8 @@ public enum EQuestConditionHideout
 {
     CraftItem = 1 << 0,
     CraftCyclicItem = 1 << 1,
-    CompleteWorkout = 1 << 2,
-    CollectScavCase = 1 << 3,
-    CollectCultistOffering = 1 << 4,
+    CollectScavCase = 1 << 2,
+    CollectCultistOffering = 1 << 3,
+    CompleteWorkout = 1 << 4,
     EmptyHI = 1 << 31,
 }

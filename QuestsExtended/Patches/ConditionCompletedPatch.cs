@@ -22,6 +22,7 @@ using static EFT.UI.InteractionButtonsContainer;
 using static LocalQuestControllerClass;
 using QuestsExtended.Models;
 using QuestsExtended.SaveLoadRelatedClasses;
+using Comfort.Common;
 
 namespace QuestsExtended.Patches
 {
@@ -41,7 +42,7 @@ namespace QuestsExtended.Patches
                 if (__instance.CurrentValue >= __instance.Condition.value)
                 {
                     //Plugin.Log.LogInfo("This child condition is completed... let's try a new HandleOptionalConditionCompletion.");
-                    OptionalConditionController.HandleOptionalConditionCompletion(__instance.Condition);
+                    OptionalConditionController.HandleQuestStartingConditionCompletion(__instance.Condition);
                 }
 
             }
@@ -69,9 +70,213 @@ namespace QuestsExtended.Patches
             //Plugin.Log.LogInfo($"(POSTFIX)Quest {questId} just changed {counterId}'s value by {valueToAdd}, making it {counter.Value}.");
             if (__state != counter.Value)
             {
-                //Plugin.Log.LogWarning($"We got the vanilla condition that just changed: {counterId}. Send it to OCC for processing");
-                OptionalConditionController.HandleVanillaChildConditionChanged(counterId, counter.Value);
+                Plugin.Log.LogWarning($"We got the vanilla condition that just changed: {counterId}. Send it to OCC for processing");
+                OptionalConditionController.HandleVanillaConditionChanged(counterId, counter.Value);
             }
+        }
+    }
+
+    internal class BSGWHYISYOURCODELIKETHIS : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return AccessTools.Method(typeof(QuestClass), nameof(QuestClass.CheckForStatusChange), [typeof(EQuestStatus), typeof(bool), typeof(bool), typeof(bool), typeof(Action<QuestClass>), typeof(bool)]);
+        }
+        [PatchPostfix]
+        private static void Postfix (QuestClass __instance, EQuestStatus status)
+        {
+            Plugin.Log.LogInfo($"CFSC ran on quest {__instance.Id}. The status in the method is {status}, while the __instance status shows as {__instance.QuestStatus}");
+            //This seems to work. We can try using this,
+            if (status == EQuestStatus.AvailableForFinish && __instance.QuestStatus == status)
+            {
+                Plugin.Log.LogInfo("Did a quest just get completed?");
+                foreach (var condDict in __instance.Conditions)
+                {
+                    foreach (var cond in condDict.Value)
+                    {
+                        if (CompletedSaveData.CompletedMultipleChoice.Contains(__instance.Id)) continue;
+                        foreach (var quest in Plugin.Quests)
+                        {
+                            if (quest.Value.IsMultipleChoiceStarter)
+                            {
+                                foreach (var overrideCond in quest.Value.Conditions)
+                                {
+                                    if (overrideCond.ConditionId == cond.id)
+                                    {
+                                        if (overrideCond.QuestsToStart != null && !overrideCond.IsFail)
+                                        {
+                                            Plugin.Log.LogInfo("Probably got a condition that's meant to start multiple quests, running through the OCC.");
+                                            OptionalConditionController.DirectHandleQuestStartingConditionCompletion(quest.Value.QuestId, overrideCond);
+                                            return;
+                                        } 
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if (status == EQuestStatus.Started && __instance.QuestStatus == status && __instance.CompletedConditions != null)
+            {
+                Plugin.Log.LogInfo("This quest is not completed, but has a comleted condition. Let's check those conditions to see if they are Quest Starters.");
+                foreach (var condDict in __instance.Conditions)
+                {
+                    foreach (var cond in condDict.Value)
+                    {
+                        if (!__instance.CompletedConditions.Contains(cond.id)) continue;
+                        if (CompletedSaveData.CompletedMultipleChoice.Contains(__instance.Id)) continue;
+                        foreach (var quest in Plugin.Quests)
+                        {
+                            if (quest.Value.IsMultipleChoiceStarter)
+                            {
+                                foreach (var overrideCond in quest.Value.Conditions)
+                                {
+                                    if (overrideCond.ConditionId == cond.id)
+                                    {
+                                        if (overrideCond.QuestsToStart != null && !overrideCond.IsFail)
+                                        {
+                                            Plugin.Log.LogInfo("Probably got a condition that's meant to start multiple quests, running through the OCC.");
+                                            OptionalConditionController.DirectHandleQuestStartingConditionCompletion(quest.Value.QuestId, overrideCond);
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if ((status == EQuestStatus.Fail || status == EQuestStatus.MarkedAsFailed) && __instance.QuestStatus == status)
+            {
+                Plugin.Log.LogInfo($"{status.ToString()} is status. {__instance.Id} is the quest id. Did a quest just fail?");
+                foreach (var condDict in __instance.Conditions)
+                {
+                    foreach (var cond in condDict.Value)
+                    {
+                        if (CompletedSaveData.CompletedMultipleChoice.Contains(__instance.Id)) continue;
+                        foreach (var quest in Plugin.Quests)
+                        {
+                            if (quest.Value.IsMultipleChoiceStarter)
+                            {
+                                foreach (var overrideCond in quest.Value.Conditions)
+                                {
+                                    if (overrideCond.ConditionId == cond.id && overrideCond.QuestsToStart != null && overrideCond.IsFail)
+                                    {
+                                        Plugin.Log.LogInfo("Ooooo, a fail condition that starts a quest! How exciting. Running through the OCC.");
+                                        OptionalConditionController.DirectHandleQuestStartingConditionCompletion(quest.Value.QuestId, overrideCond);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    internal class CheckForMultiChoiceConditionActivationPatch : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return AccessTools.Method(typeof(AbstractQuestClass<QuestClass>), nameof(AbstractQuestClass<QuestClass>.method_0));
+        }
+
+        [PatchPostfix]
+        private static void Postfix (AbstractQuestClass<QuestClass> __instance)
+        {
+
+        }
+    }
+
+    internal class CheckForMultiChoiceConditionActivationPatch1 : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return AccessTools.Method(typeof(GClass3692), nameof(GClass3692.SetStatus));
+        }
+
+        [PatchPostfix]
+        private static void Postfix(GClass3689 __instance)
+        {
+            Plugin.Log.LogInfo("GClass3692 is correct.");
+        }
+    }
+
+    internal class CheckForMultiChoiceConditionActivationPatch2 : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return AccessTools.Method(typeof(GClass3689), nameof(GClass3689.SetStatus));
+        }
+
+        [PatchPostfix]
+        private static void Postfix(GClass3689 __instance, EQuestStatus status)
+        {
+            Plugin.Log.LogInfo("GClass3689 is correct.");
+            AbstractQuestClass<GClass3689> aqc = __instance;
+            if (status == EQuestStatus.Success)
+            {
+                foreach (var conds in aqc.Conditions)
+                {
+                    foreach (var cond in conds.Value)
+                    {
+                        if (CompletedSaveData.CompletedMultipleChoice.Contains(__instance.Id)) continue;
+                        foreach (var quest in Plugin.Quests)
+                        {
+                            if (quest.Value.IsMultipleChoiceStarter)
+                            {
+                                foreach (var overrideCond in quest.Value.Conditions)
+                                    if (overrideCond.ConditionId == cond.id && overrideCond.QuestsToStart != null && overrideCond.IsFail)
+                                    {
+                                        Plugin.Log.LogInfo("Quest completed, let's run it through OCC.");
+                                        OptionalConditionController.DirectHandleQuestStartingConditionCompletion(quest.Value.QuestId, overrideCond);
+                                        return;
+                                    }
+                            }
+                        }
+                    }
+                }
+            }
+            else if (status == EQuestStatus.Fail || status == EQuestStatus.MarkedAsFailed)
+            {
+                foreach (var conds in aqc.Conditions)
+                {
+                    foreach (var cond in conds.Value)
+                    {
+                        if (CompletedSaveData.CompletedMultipleChoice.Contains(__instance.Id)) continue;
+                        foreach (var quest in Plugin.Quests)
+                        {
+                            if (quest.Value.IsMultipleChoiceStarter)
+                            {
+                                foreach (var overrideCond in quest.Value.Conditions)
+                                {
+                                    if (overrideCond.ConditionId == cond.id && overrideCond.QuestsToStart != null && overrideCond.IsFail)
+                                    {
+                                        Plugin.Log.LogInfo("Ooooo, a fail condition that starts a quest! How exciting. Running through the OCC.");
+                                        OptionalConditionController.DirectHandleQuestStartingConditionCompletion(quest.Value.QuestId, overrideCond);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }   
+            }
+        }
+    }
+
+    internal class CheckForMultiChoiceConditionActivationPatch3 : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return AccessTools.Method(typeof(QuestClass), nameof(QuestClass.SetStatus));
+        }
+
+        [PatchPostfix]
+        private static void Postfix(QuestClass __instance)
+        {
+            Plugin.Log.LogInfo("QuestClass is correct.");
         }
     }
 }

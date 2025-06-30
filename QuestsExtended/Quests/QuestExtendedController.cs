@@ -39,6 +39,8 @@ internal class QuestExtendedController : MonoBehaviour
         _player = Singleton<GameWorld>.Instance.MainPlayer;
         _questAbstractController = _player?.AbstractQuestControllerClass;
 
+        hasCompletedInitMM = false;
+
         _medController = new MedicalQuestController(this);
         _physicalController = new PhysicalQuestController(this);
         _statCounterController = new StatCounterQuestController(this);
