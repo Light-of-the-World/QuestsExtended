@@ -12,6 +12,7 @@ public struct CustomQuest
     public string QuestId;
     [CanBeNull] public string QuestName;
     [CanBeNull] public bool IsMultipleChoiceStarter;
+    [CanBeNull] public bool BlockQuestMessages;
     public List<CustomCondition> Conditions;
 }
 public struct CustomCondition
@@ -82,4 +83,5 @@ public struct CustomCondition
     [CanBeNull] public List<string> CyclicWorkstations;
     [CanBeNull] public List<string> TraderIds;
     [CanBeNull] public List<string> CurrencyTypes;
+    [CanBeNull] public List<string> EnemyTypes;
 }

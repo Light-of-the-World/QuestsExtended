@@ -58,6 +58,25 @@ namespace QuestsExtended.Patches
                 Plugin.Log.LogInfo($"(QE) Quest Controller created by TradingScreen.");
             }
         }
+
+        internal class ResetMainMenuPatch : ModulePatch
+        {
+            protected override MethodBase GetTargetMethod()
+            {
+                return AccessTools.Method(typeof(DefaultUIButton), nameof(DefaultUIButton.OnPointerClick));
+            }
+
+            [PatchPostfix]
+            private static void Postfix(DefaultUIButton __instance)
+            {
+                if (AbstractCustomQuestController.ResetMainMenu)
+                {
+                    Plugin.Log.LogInfo($"Header text is {__instance.HeaderText}");
+                    if (__instance.HeaderText.ToLower() == "ok")
+                    OptionalConditionController.ResetMainMenuForQE();
+                }
+            }
+        }
     }
     /*
     internal class QEBuyPatch : ModulePatch
@@ -152,15 +171,6 @@ namespace QuestsExtended.Patches
         {
             Plugin.Log.LogInfo("MMCC.method_5 ran");
             if (OptionalConditionController.mainMenuControllerClass != __instance) OptionalConditionController.mainMenuControllerClass = __instance;
-            if (AbstractCustomQuestController.ShowResetMessage == true)
-            {
-                Plugin.Log.LogInfo("Trying to create a reset message");
-                AbstractCustomQuestController.ShowResetMessage = false;
-                PreloaderUI preloaderUi = Singleton<PreloaderUI>.Instance;
-                string title = "Quests Extended Notice";
-                string description = "The menu is being reset by Quests Extended. Nothing is broken, don't worry. If this happened, it is because you have a new quest available 'The Quests Extended Way'. ";
-                Singleton<PreloaderUI>.Instance.ShowCriticalErrorScreen(title, description, ErrorScreen.EButtonType.OkButton, 15);
-            }
         }
     }
 

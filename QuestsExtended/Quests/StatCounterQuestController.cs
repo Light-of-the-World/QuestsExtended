@@ -95,6 +95,11 @@ namespace QuestsExtended.Quests
                 var conditions = _questController.GetActiveConditions(conditionstoAdd);
                 foreach (var cond in conditions)
                 {
+                    if (cond.CustomCondition.EnemyTypes != null)
+                    {
+                        bool test = CheckForCorrectEnemyType(damage, cond);
+                        if (!test) continue;
+                    }
                     IncrementCondition(cond, (int)Math.Round(damage.DidBodyDamage, 0));
                 }
             }
@@ -113,6 +118,11 @@ namespace QuestsExtended.Quests
                     var conditions = _questController.GetActiveConditions(conditionsToAdd);
                     foreach (var cond in conditions)
                     {
+                        if (cond.CustomCondition.EnemyTypes != null)
+                        {
+                            bool test = CheckForCorrectEnemyType(damageInfo, cond);
+                            if (!test) continue;
+                        }
                         IncrementCondition(cond, floatResult);
                     }
                 }
@@ -129,6 +139,11 @@ namespace QuestsExtended.Quests
             var conditions = _questController.GetActiveConditions(conditionsToAdd);
             foreach (var cond in conditions)
             {
+                if (cond.CustomCondition.EnemyTypes != null)
+                {
+                    bool test = CheckForCorrectEnemyType(damageInfo, cond);
+                    if (!test) continue;
+                }
                 IncrementCondition(cond, 1);
             }
         }
@@ -182,6 +197,11 @@ namespace QuestsExtended.Quests
             var conditions = _questController.GetActiveConditions(conditionsToAdd);
             foreach (var cond in conditions)
             {
+                if (cond.CustomCondition.EnemyTypes != null)
+                {
+                    bool test = CheckForCorrectEnemyType(damageInfo, cond);
+                    if (!test) continue;
+                }
                 IncrementCondition(cond, 1);
             }
         }
@@ -286,6 +306,14 @@ namespace QuestsExtended.Quests
         {
             yield return new WaitForSeconds(0.2f);
             SniperCooldown = false;
+        }
+
+        private static bool CheckForCorrectEnemyType(DamageInfoStruct damageInfo, ConditionPair cond)
+        {
+            string faction = damageInfo.Player.iPlayer.Side.ToString();
+            if (cond.CustomCondition.EnemyTypes.Contains(faction)) return true;
+            else if (cond.CustomCondition.EnemyTypes.Contains("Scav") && faction == "scav") return true;
+            else return false;
         }
     }
 }

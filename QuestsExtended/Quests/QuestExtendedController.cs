@@ -88,6 +88,7 @@ internal class QuestExtendedController : MonoBehaviour
         _hideoutQuestController.Init();
         _tradingQuestController = new TradingQuestController(this);
         _tradingQuestController.Init();
+        isInMainMenu = true;
 
         if (UnderlyingQuestControllerClassName == null)
         {
@@ -298,7 +299,6 @@ internal class QuestExtendedController : MonoBehaviour
         }
 
         Plugin.Log.LogDebug($"Custom conditions active: {activeQuests.Count > 0}");
-
         return activeQuests;
     }
     
@@ -358,7 +358,7 @@ internal class QuestExtendedController : MonoBehaviour
         }
 
         List<CustomCondition> customConditions = new List<CustomCondition>();
-
+        if (quest.Conditions == null) return null;
         // Use a switch case based on the type of the enum
         switch (conditionType)
         {

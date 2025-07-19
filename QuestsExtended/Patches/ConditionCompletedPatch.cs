@@ -85,11 +85,11 @@ namespace QuestsExtended.Patches
         [PatchPostfix]
         private static void Postfix (QuestClass __instance, EQuestStatus status)
         {
-            Plugin.Log.LogInfo($"CFSC ran on quest {__instance.Id}. The status in the method is {status}, while the __instance status shows as {__instance.QuestStatus}");
+            //Plugin.Log.LogInfo($"CFSC ran on quest {__instance.Id}. The status in the method is {status}, while the __instance status shows as {__instance.QuestStatus}");
             //This seems to work. We can try using this,
             if (status == EQuestStatus.AvailableForFinish && __instance.QuestStatus == status)
             {
-                Plugin.Log.LogInfo("Did a quest just get completed?");
+                //Plugin.Log.LogInfo("Did a quest just get completed?");
                 foreach (var condDict in __instance.Conditions)
                 {
                     foreach (var cond in condDict.Value)
@@ -175,108 +175,32 @@ namespace QuestsExtended.Patches
         }
     }
 
-    internal class CheckForMultiChoiceConditionActivationPatch : ModulePatch
+    internal class BlockMessagePatch : ModulePatch
     {
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.Method(typeof(AbstractQuestClass<QuestClass>), nameof(AbstractQuestClass<QuestClass>.method_0));
+            return AccessTools.Method(typeof(QuestView), nameof(QuestView.ShowQuestMessage));
         }
-
-        [PatchPostfix]
-        private static void Postfix (AbstractQuestClass<QuestClass> __instance)
+        [PatchPrefix]
+        private static bool Prefix(QuestView __instance, ref RawQuestClass questTemplate)
         {
-
-        }
-    }
-
-    internal class CheckForMultiChoiceConditionActivationPatch1 : ModulePatch
-    {
-        protected override MethodBase GetTargetMethod()
-        {
-            return AccessTools.Method(typeof(GClass3692), nameof(GClass3692.SetStatus));
-        }
-
-        [PatchPostfix]
-        private static void Postfix(GClass3689 __instance)
-        {
-            Plugin.Log.LogInfo("GClass3692 is correct.");
-        }
-    }
-
-    internal class CheckForMultiChoiceConditionActivationPatch2 : ModulePatch
-    {
-        protected override MethodBase GetTargetMethod()
-        {
-            return AccessTools.Method(typeof(GClass3689), nameof(GClass3689.SetStatus));
-        }
-
-        [PatchPostfix]
-        private static void Postfix(GClass3689 __instance, EQuestStatus status)
-        {
-            Plugin.Log.LogInfo("GClass3689 is correct.");
-            AbstractQuestClass<GClass3689> aqc = __instance;
-            if (status == EQuestStatus.Success)
+            foreach (var quest in Plugin.Quests.Values)
             {
-                foreach (var conds in aqc.Conditions)
+                if (questTemplate.Id == quest.QuestId)
                 {
-                    foreach (var cond in conds.Value)
+                    Plugin.Log.LogInfo($"Found quest {quest.QuestId} in BlockMessagePatch.");
+                    QuestClass questClass = (QuestClass)AccessTools.Field(__instance.GetType(), "_quest").GetValue(__instance);
+                    Plugin.Log.LogInfo($"Quest's status during BlockMessagePatch was {questClass.QuestStatus}");
+                    //Let's try to get only the "new quest" messages to be blocked, and allow the "complete quest" messages to still show.
+                    if (quest.BlockQuestMessages==true)
                     {
-                        if (CompletedSaveData.CompletedMultipleChoice.Contains(__instance.Id)) continue;
-                        foreach (var quest in Plugin.Quests)
-                        {
-                            if (quest.Value.IsMultipleChoiceStarter)
-                            {
-                                foreach (var overrideCond in quest.Value.Conditions)
-                                    if (overrideCond.ConditionId == cond.id && overrideCond.QuestsToStart != null && overrideCond.IsFail)
-                                    {
-                                        Plugin.Log.LogInfo("Quest completed, let's run it through OCC.");
-                                        OptionalConditionController.DirectHandleQuestStartingConditionCompletion(quest.Value.QuestId, overrideCond);
-                                        return;
-                                    }
-                            }
-                        }
+                        Plugin.Log.LogInfo($"Skipping quest {quest.QuestId}'s messages.");
+                        return false;
                     }
+                    else break;
                 }
             }
-            else if (status == EQuestStatus.Fail || status == EQuestStatus.MarkedAsFailed)
-            {
-                foreach (var conds in aqc.Conditions)
-                {
-                    foreach (var cond in conds.Value)
-                    {
-                        if (CompletedSaveData.CompletedMultipleChoice.Contains(__instance.Id)) continue;
-                        foreach (var quest in Plugin.Quests)
-                        {
-                            if (quest.Value.IsMultipleChoiceStarter)
-                            {
-                                foreach (var overrideCond in quest.Value.Conditions)
-                                {
-                                    if (overrideCond.ConditionId == cond.id && overrideCond.QuestsToStart != null && overrideCond.IsFail)
-                                    {
-                                        Plugin.Log.LogInfo("Ooooo, a fail condition that starts a quest! How exciting. Running through the OCC.");
-                                        OptionalConditionController.DirectHandleQuestStartingConditionCompletion(quest.Value.QuestId, overrideCond);
-                                        return;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }   
-            }
-        }
-    }
-
-    internal class CheckForMultiChoiceConditionActivationPatch3 : ModulePatch
-    {
-        protected override MethodBase GetTargetMethod()
-        {
-            return AccessTools.Method(typeof(QuestClass), nameof(QuestClass.SetStatus));
-        }
-
-        [PatchPostfix]
-        private static void Postfix(QuestClass __instance)
-        {
-            Plugin.Log.LogInfo("QuestClass is correct.");
+            return true;
         }
     }
 }

@@ -8,10 +8,11 @@ using Newtonsoft.Json;
 using QuestsExtended.Models;
 using QuestsExtended.Patches;
 using QuestsExtended.Utils;
+using static QuestsExtended.Patches.QEFromTraderScreensGroupPatch;
 
 namespace QuestsExtended;
 
-[BepInPlugin("com.dirtbikercjandlotw.QuestsExtended", "Quests Extended", "2.0.2")]
+[BepInPlugin("com.dirtbikercjandlotw.QuestsExtended", "Quests Extended", "3.1.0")]
 public class Plugin : BaseUnityPlugin
 {
     internal const int TarkovVersion = 35392;
@@ -56,9 +57,8 @@ public class Plugin : BaseUnityPlugin
         new QETransactionPatch().Enable();
         new MainMenuControllerGetterPatch().Enable();
         new BSGWHYISYOURCODELIKETHIS().Enable();
-        //new CheckForMultiChoiceConditionActivationPatch1().Enable();
-        //new CheckForMultiChoiceConditionActivationPatch2().Enable();
-        //new CheckForMultiChoiceConditionActivationPatch3().Enable();
+        new ResetMainMenuPatch().Enable();
+        new BlockMessagePatch().Enable();
     }
 
     private void Start()
