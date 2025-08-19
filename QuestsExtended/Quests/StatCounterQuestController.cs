@@ -311,9 +311,15 @@ namespace QuestsExtended.Quests
         private static bool CheckForCorrectEnemyType(DamageInfoStruct damageInfo, ConditionPair cond)
         {
             string faction = damageInfo.Player.iPlayer.Side.ToString();
-            if (cond.CustomCondition.EnemyTypes.Contains(faction)) return true;
-            else if (cond.CustomCondition.EnemyTypes.Contains("Scav") && faction == "scav") return true;
-            else return false;
+            faction.ToLower();
+            List<string> types = cond.CustomCondition.EnemyTypes.ToList();
+            foreach (var type in types) 
+            {
+                type.ToLower();
+                if (type == faction) return true;
+                else if (faction == "savage" && type == "scav") return true;
+            }
+            return false;
         }
     }
 }

@@ -65,8 +65,10 @@ namespace QuestsExtended.Patches
         [PatchPostfix]
         private static void Postfix(ConditionCounterManager __instance, ref int valueToAdd, ref TaskConditionCounterClass counter, int __state)
         {
+            if (counter == null) return;
             string questId = counter.Conditional.Id;
             string counterId = counter.Id;
+            if (counterId == "651418430ab21e2a907ab76f" || counterId == "65141bd40495cdcd5a295617") return;
             //Plugin.Log.LogInfo($"(POSTFIX)Quest {questId} just changed {counterId}'s value by {valueToAdd}, making it {counter.Value}.");
             if (__state != counter.Value)
             {
