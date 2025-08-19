@@ -377,13 +377,13 @@ namespace QuestsExtended.Quests
             if (conditions.Count == 0) return; //No active quests with CompleteOptionals, no need to run this.
             */
             var activeQuests = ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.QuestsData;
-            if (activeQuests.Count == 0) return; //Shouldn't be possible but since this method keeps breaking, screw it
+            //if (activeQuests.Count == 0) return; //Shouldn't be possible but since this method keeps breaking, screw it
             foreach (var quest in activeQuests)
             {
-                if (quest.Template.conditionsDict_0.Count == 0) continue; //Null guard
+                //if (quest.Template.conditionsDict_0.Count == 0) continue; //Null guard
                 foreach (var cond in quest.Template.conditionsDict_0)
                 {
-                    if (cond.Value.list_0.Count == 0) continue; //Null guard
+                    //if (cond.Value.list_0.Count == 0) continue; //Null guard
                     foreach (var condition in cond.Value.list_0)
                     {
                         if (condition.id == conditionId)
