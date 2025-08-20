@@ -18,6 +18,7 @@ public class Plugin : BaseUnityPlugin
     internal const int TarkovVersion = 35392;
     internal static ManualLogSource Log;
     public static List<String> BannedConditionIds;
+    public static List<String> BannedQuestIds;
 
     internal static Dictionary<string, CustomQuest> Quests { get; private set; } = [];
     
@@ -155,7 +156,15 @@ public class Plugin : BaseUnityPlugin
             "66c329f6f07551de7372f589",
             "655b4995528d47f68c1ffed6",
             "664f1f22aa7c03fbe75abc3c",
-            "675998e314f914c3859afd4f"
+            "675998e314f914c3859afd4f",
+        });
+    }
+    private void FillBannedQuests()
+    {
+        BannedQuestIds = new List<string>();
+        BannedQuestIds.AddRange(new string[]
+        {
+            "68a020e49ff04a4a50037f3e",
         });
     }
 
@@ -163,6 +172,7 @@ public class Plugin : BaseUnityPlugin
     {
         LoadAllQuestConditions();
         FillBannedConditions();
+        FillBannedQuests();
     }
 
     private void LoadAllQuestConditions()

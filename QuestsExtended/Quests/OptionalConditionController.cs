@@ -374,31 +374,37 @@ namespace QuestsExtended.Quests
         {
             try
             {
-            /*
-            var conditions = _questController.GetActiveConditions(EQuestConditionGen.CompleteOptionals);
-            if (conditions.Count == 0) return; //No active quests with CompleteOptionals, no need to run this.
-            */
+                /*
+                var conditions = _questController.GetActiveConditions(EQuestConditionGen.CompleteOptionals);
+                if (conditions.Count == 0) return; //No active quests with CompleteOptionals, no need to run this.
+                */
+                //Plugin.Log.LogInfo("Grabbing quests from the backend");
                 var activeQuests = ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.QuestsData;
-                //if (activeQuests.Count == 0) return; //Shouldn't be possible but since this method keeps breaking, screw it
                 foreach (var quest in activeQuests)
                 {
-                    //if (quest.Template.conditionsDict_0.Count == 0) continue; //Null guard
+                    //Plugin.Log.LogInfo($"Checking quest {quest.Id}");
+                    if (quest.Template == null) continue;
+                    if (quest.Template.conditionsDict_0 == null) continue;
                     foreach (var cond in quest.Template.conditionsDict_0)
                     {
-                        //if (cond.Value.list_0.Count == 0) continue; //Null guard
+                        //Plugin.Log.LogInfo($"Checking a cond in quest {quest.Id}");
+                        if (cond.Value == null) continue;
+                        if (cond.Value.list_0 == null) continue;
                         foreach (var condition in cond.Value.list_0)
                         {
+                            //Plugin.Log.LogInfo($"I don't even know anymore");
                             if (condition.id == conditionId)
                             {
                                 if (currentValue >= condition.value)
                                 {
                                     //We need to adjust this so that it can handle non-optional conditions!
-                                    //Plugin.Log.LogInfo("Condition acquired and completed, let's run it through CompleteOptionals!");
+                                    Plugin.Log.LogInfo("Condition acquired and completed, let's run it through CompleteOptionals!");
                                     HandleQuestStartingConditionCompletion(condition);
                                     return;
                                 }
                                 else
                                 {
+                                    return;
                                     //Plugin.Log.LogInfo("Condition acquired, but is not completed.");
                                 }
                             }
