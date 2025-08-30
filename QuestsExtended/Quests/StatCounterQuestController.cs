@@ -97,7 +97,7 @@ namespace QuestsExtended.Quests
                 {
                     if (cond.CustomCondition.EnemyTypes != null)
                     {
-                        Player enemy = Singleton<GameWorld>.Instance.GetAlivePlayerByProfileID(enemyID);
+                        Player enemy = Singleton<GameWorld>.Instance.GetEverExistedPlayerByID(enemyID);
                         bool test = CheckForCorrectEnemyType(enemy, cond);
                         if (!test) continue;
                     }
@@ -200,7 +200,8 @@ namespace QuestsExtended.Quests
             {
                 if (cond.CustomCondition.EnemyTypes != null)
                 {
-                    Player enemy = Singleton<GameWorld>.Instance.GetAlivePlayerByProfileID(enemyID);
+                    Player enemy = Singleton<GameWorld>.Instance.GetEverExistedPlayerByID(enemyID);
+                    if (enemy == null) break;
                     bool test = CheckForCorrectEnemyType(enemy, cond);
                     if (!test) continue;
                 }
