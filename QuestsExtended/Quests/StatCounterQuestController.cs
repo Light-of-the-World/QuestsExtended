@@ -33,7 +33,7 @@ namespace QuestsExtended.Quests
         }
 
         //Damage
-        public static void EnemyDamageProcessor(DamageInfoStruct damage, float distance)
+        public static void EnemyDamageProcessor(DamageInfoStruct damage, float distance, string enemyID)
         {
             //Plugin.Log.LogInfo($"[StatsCounter] Sucessfully triggered EnemyDamageProcessor with sent information. You may now start writing the code. Body Damage was {damage.DidBodyDamage}, armour damage was {damage.DidArmorDamage} and distance was {distance}");
             EQuestConditionCombat conditionstoAdd = EQuestConditionCombat.DamageWithAny;
@@ -97,14 +97,15 @@ namespace QuestsExtended.Quests
                 {
                     if (cond.CustomCondition.EnemyTypes != null)
                     {
-                        bool test = CheckForCorrectEnemyType(damage, cond);
+                        Player enemy = Singleton<GameWorld>.Instance.GetAlivePlayerByProfileID(enemyID);
+                        bool test = CheckForCorrectEnemyType(enemy, cond);
                         if (!test) continue;
                     }
                     IncrementCondition(cond, (int)Math.Round(damage.DidBodyDamage, 0));
                 }
             }
         }
-        public static void ArmourDamageProcessor(float damage, DamageInfoStruct damageInfo)
+        public static void ArmourDamageProcessor(float damage, DamageInfoStruct damageInfo, Player enemy)
         {
             if (damage > 0f)
             {
@@ -120,7 +121,7 @@ namespace QuestsExtended.Quests
                     {
                         if (cond.CustomCondition.EnemyTypes != null)
                         {
-                            bool test = CheckForCorrectEnemyType(damageInfo, cond);
+                            bool test = CheckForCorrectEnemyType(enemy, cond);
                             if (!test) continue;
                         }
                         IncrementCondition(cond, floatResult);
@@ -128,7 +129,7 @@ namespace QuestsExtended.Quests
                 }
             }
         }
-        public static void BodyPartDestroyed(DamageInfoStruct damageInfo, EBodyPart bodyPart)
+        public static void BodyPartDestroyed(DamageInfoStruct damageInfo, EBodyPart bodyPart, Player enemy)
         {
             EQuestConditionCombat conditionsToAdd = EQuestConditionCombat.DestroyEnemyBodyParts;
             if (damageInfo.Weapon is SmgItemClass && (bodyPart.Equals(EBodyPart.LeftLeg) || bodyPart.Equals(EBodyPart.RightLeg)))
@@ -141,13 +142,13 @@ namespace QuestsExtended.Quests
             {
                 if (cond.CustomCondition.EnemyTypes != null)
                 {
-                    bool test = CheckForCorrectEnemyType(damageInfo, cond);
+                    bool test = CheckForCorrectEnemyType(enemy, cond);
                     if (!test) continue;
                 }
                 IncrementCondition(cond, 1);
             }
         }
-        public static void EnemyKillProcessor(DamageInfoStruct damageInfo)
+        public static void EnemyKillProcessor(DamageInfoStruct damageInfo, string enemyID)
         {
             EQuestConditionCombat conditionsToAdd = EQuestConditionCombat.EmptyC;
             if (PhysicalQuestController.isCrouched)
@@ -199,7 +200,8 @@ namespace QuestsExtended.Quests
             {
                 if (cond.CustomCondition.EnemyTypes != null)
                 {
-                    bool test = CheckForCorrectEnemyType(damageInfo, cond);
+                    Player enemy = Singleton<GameWorld>.Instance.GetAlivePlayerByProfileID(enemyID);
+                    bool test = CheckForCorrectEnemyType(enemy, cond);
                     if (!test) continue;
                 }
                 IncrementCondition(cond, 1);
@@ -308,9 +310,9 @@ namespace QuestsExtended.Quests
             SniperCooldown = false;
         }
 
-        private static bool CheckForCorrectEnemyType(DamageInfoStruct damageInfo, ConditionPair cond)
+        private static bool CheckForCorrectEnemyType(Player enemy, ConditionPair cond)
         {
-            string faction = damageInfo.Player.iPlayer.Side.ToString();
+            string faction = enemy.Side.ToString();
             faction.ToLower();
             List<string> types = cond.CustomCondition.EnemyTypes.ToList();
             foreach (var type in types) 

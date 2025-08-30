@@ -20,10 +20,10 @@ internal class EnemyDamagePatch : ModulePatch
         return AccessTools.Method(typeof(LocationStatisticsCollectorAbstractClass), nameof(LocationStatisticsCollectorAbstractClass.OnEnemyDamage));
     }
     [PatchPostfix]
-    private static void Postfix(LocationStatisticsCollectorAbstractClass __instance, ref DamageInfoStruct damage, ref float distance)
+    private static void Postfix(LocationStatisticsCollectorAbstractClass __instance, ref DamageInfoStruct damage, ref float distance, ref string playerProfileId)
     {
         //Plugin.Log.LogInfo($"[StatsPatch] OnEnemyDamage called. Sending to StatCounterQuestController for processing.");
-        StatCounterQuestController.EnemyDamageProcessor(damage, distance);
+        StatCounterQuestController.EnemyDamageProcessor(damage, distance, playerProfileId);
         //Do not forget to remove this log before publication!
     }
 }
@@ -36,10 +36,10 @@ internal class EnemyKillPatch : ModulePatch
     }
 
     [PatchPostfix]
-    private static void Postfix(LocationStatisticsCollectorAbstractClass __instance, ref DamageInfoStruct damage)
+    private static void Postfix(LocationStatisticsCollectorAbstractClass __instance, ref DamageInfoStruct damage, ref string playerAccountId)
     {
         //Plugin.Log.LogInfo($"[StatsPatch] OnEnemyKill called. Sending to StatCounterQuestController for processing.");
-        StatCounterQuestController.EnemyKillProcessor(damage);
+        StatCounterQuestController.EnemyKillProcessor(damage, playerAccountId);
         //Do not forget to remove this log before publication!
     }
 }
@@ -59,6 +59,20 @@ internal class SearchContainerPatch : ModulePatch
     }
 }
 
+internal class HoldMostRecentlyDamagedPlayer : ModulePatch
+{
+    public static Player MostRecentPlayer;
+    protected override MethodBase GetTargetMethod()
+    {
+        return AccessTools.Method(typeof(Player), nameof(Player.ProceedDamageThroughArmor));
+    }
+    [PatchPrefix]
+    private static void Prefix(Player __instance)
+    {
+        MostRecentPlayer = __instance;
+    }
+}
+
 internal class ArmourDurabilityPatch : ModulePatch
 {
     protected override MethodBase GetTargetMethod()
@@ -66,7 +80,7 @@ internal class ArmourDurabilityPatch : ModulePatch
         return AccessTools.Method(typeof(ArmorComponent), nameof(ArmorComponent.ApplyDamage));
     }
     [PatchPostfix]
-    private static void Postfix(ref float __result, ref DamageInfoStruct damageInfo)
+    private static void Postfix(ArmorComponent __instance, ref float __result, ref DamageInfoStruct damageInfo, ref SkillManager.SkillBuffClass heavyVestsDamageReduction)
     {
         /*
         Plugin.Log.LogInfo($"[StatsPatch] ArmorComponent.ApplyDamage was called in general. Logging some various stats as a start. The durability dealt to the armour was {__result}, let's see who caused it...");
@@ -74,7 +88,8 @@ internal class ArmourDurabilityPatch : ModulePatch
         else if (!damageInfo.Player.IsAI) Plugin.Log.LogInfo("This call was NOT caused by an AI. Presumabely caused by the player?");
         else Plugin.Log.LogInfo("damageInfo.Player.IsAI came back as neither true nor false. That's concerning...");
         */
-        if (!damageInfo.Player.IsAI) { StatCounterQuestController.ArmourDamageProcessor(__result, damageInfo); }
+        if (HoldMostRecentlyDamagedPlayer.MostRecentPlayer == null) return;
+        if (!damageInfo.Player.IsAI) { StatCounterQuestController.ArmourDamageProcessor(__result, damageInfo, HoldMostRecentlyDamagedPlayer.MostRecentPlayer); }
         //Do not forget to remove this log before publication!
     }
 }
@@ -131,7 +146,7 @@ internal class DestroyLimbsPatch : ModulePatch
             health -= damageInfo.Damage;
             if (!bodyPartState.IsDestroyed && health <= 0)
             {
-                StatCounterQuestController.BodyPartDestroyed(damageInfo, bodyPart);
+                StatCounterQuestController.BodyPartDestroyed(damageInfo, bodyPart, __instance.Player);
             }
         }
     }

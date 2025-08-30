@@ -61,6 +61,7 @@ public class Plugin : BaseUnityPlugin
         new BSGWHYISYOURCODELIKETHIS().Enable();
         new ResetMainMenuPatch().Enable();
         new BlockMessagePatch().Enable();
+        new HoldMostRecentlyDamagedPlayer().Enable();
         
     }
     private void FillBannedConditions()
