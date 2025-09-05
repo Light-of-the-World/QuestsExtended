@@ -21,10 +21,7 @@ namespace QuestsExtended.Patches
         private static void Postfix(Switch __instance, ref Turnable.EState state)
         {
             //Plugin.Log.LogInfo($"[SwitchPatch] Switch.method_7 called, logging some relavent information: state to string: {state.ToString()}. Switch instance's TypeKey: {__instance.TypeKey}.");
-            if (__instance.ExtractionZoneTip != "EXFIL_BUNKER_POWER")
-            {
-                StatCounterQuestController.PowerSwitchInteractedWith();
-            }
+            StatCounterQuestController.PowerSwitchInteractedWith();
         }
     }
 }

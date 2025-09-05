@@ -43,7 +43,7 @@ namespace QuestsExtended.Quests
                 {
                     conditionstoAdd |= EQuestConditionCombat.DamageWithPistols;
                 }
-                else if (damage.Weapon is RevolverItemClass && damage.Weapon.Id != "6275303a9f372d6ea97f9ec7")
+                else if (damage.Weapon is RevolverItemClass && damage.Weapon.Template._id.ToString() != "6275303a9f372d6ea97f9ec7")
                 {
                     conditionstoAdd |= EQuestConditionCombat.DamageWithRevolvers;
                 }
@@ -59,8 +59,9 @@ namespace QuestsExtended.Quests
                 {
                     conditionstoAdd |= EQuestConditionCombat.DamageWithAR;
                 }
-                else if (damage.Weapon is GrenadeLauncherItemClass || damage.Weapon is LauncherItemClass || damage.Weapon.Id is "6275303a9f372d6ea97f9ec7")
+                else if (damage.Weapon is GrenadeLauncherItemClass || damage.Weapon is LauncherItemClass || damage.Weapon.Template._id.ToString() is "6275303a9f372d6ea97f9ec7")
                 {
+                    //Plugin.Log.LogInfo("Yay the revolver gl worked");
                     conditionstoAdd |= EQuestConditionCombat.DamageWithGL;
                 }
                 else if (damage.Weapon is MachineGunItemClass)
@@ -311,6 +312,16 @@ namespace QuestsExtended.Quests
                 IncrementCondition(cond, 1);
             }
             StaticManager.BeginCoroutine(SwitchCooldownTimer());
+        }
+        //Using keys
+        public static void PlayerUsedKeyToUnlockDoor(string keyId)
+        {
+            Plugin.Log.LogInfo("In the method");
+            var conditions = _questController.GetActiveConditions(EQuestConditionGen.UseKey);
+            foreach (var cond in conditions)
+            {
+                if (cond.CustomCondition.KeyIds.Contains(keyId)) { IncrementCondition(cond, 1); }
+            }
         }
 
         private static IEnumerator SwitchCooldownTimer()

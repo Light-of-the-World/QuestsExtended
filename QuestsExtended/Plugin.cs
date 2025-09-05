@@ -62,6 +62,8 @@ public class Plugin : BaseUnityPlugin
         new ResetMainMenuPatch().Enable();
         new BlockMessagePatch().Enable();
         new HoldMostRecentlyDamagedPlayer().Enable();
+        new KeyUsedOnDoorPatch().Enable();
+        new KeyCardUsedOnDoorPatch().Enable();
         
     }
     private void FillBannedConditions()

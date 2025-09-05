@@ -319,7 +319,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
             }
             else if (isProne)
             {
-                Plugin.Log.LogInfo("You are prone");
+                //Plugin.Log.LogInfo("You are prone");
                 conditionsToCheck |= EQuestConditionGen.MoveDistanceWhileProne;
             }
             else

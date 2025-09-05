@@ -84,4 +84,5 @@ public struct CustomCondition
     [CanBeNull] public List<string> TraderIds;
     [CanBeNull] public List<string> CurrencyTypes;
     [CanBeNull] public List<string> EnemyTypes;
+    [CanBeNull] public List<string> KeyIds;
 }

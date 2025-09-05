@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using EFT;
 using EFT.HealthSystem;
+using EFT.Interactive;
 using EFT.InventoryLogic;
 using HarmonyLib;
 using QuestsExtended.Quests;
@@ -41,6 +42,35 @@ internal class EnemyKillPatch : ModulePatch
         //Plugin.Log.LogInfo($"[StatsPatch] OnEnemyKill called. Sending to StatCounterQuestController for processing.");
         StatCounterQuestController.EnemyKillProcessor(damage, playerProfileId);
         //Do not forget to remove this log before publication!
+    }
+}
+
+internal class KeyUsedOnDoorPatch : ModulePatch
+{
+    protected override MethodBase GetTargetMethod()
+    {
+        return AccessTools.Method(typeof(WorldInteractiveObject), nameof(WorldInteractiveObject.UnlockOperation));
+    }
+    [PatchPostfix]
+    private static void Postfix(ref KeyComponent key, ref Player player)
+    {
+        Plugin.Log.LogInfo("Player used a key");
+        Plugin.Log.LogInfo($"Do either of these look correct: {key.Template.KeyId}, {key.Item.Id}");
+        if (player.IsAI) return;
+        StatCounterQuestController.PlayerUsedKeyToUnlockDoor(key.Template.KeyId);
+    }
+}
+internal class KeyCardUsedOnDoorPatch : ModulePatch
+{
+    protected override MethodBase GetTargetMethod()
+    {
+        return AccessTools.Method(typeof(KeycardDoor), nameof(KeycardDoor.UnlockOperation));
+    }
+    [PatchPostfix]
+    private static void Postfix(ref KeyComponent key, ref Player player)
+    {
+        if (player != AbstractCustomQuestController._player) return;
+        StatCounterQuestController.PlayerUsedKeyToUnlockDoor(key.Item.Id);
     }
 }
 

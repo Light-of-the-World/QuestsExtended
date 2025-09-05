@@ -15,7 +15,8 @@ public enum EQuestConditionGen
     SearchContainer = 1 << 7,
     LootItem = 1 << 8,
     ActivatePowerSwitch = 1 << 9,
-    CompleteOptionals = 1 << 10,
+    UseKey = 1 << 10,
+    CompleteOptionals = 1 << 11,
     EmptyWithQuestStarter = 1 << 30,
     Empty = 1 << 31,
 }
