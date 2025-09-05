@@ -43,6 +43,10 @@ namespace QuestsExtended.Quests
                 {
                     conditionstoAdd |= EQuestConditionCombat.DamageWithPistols;
                 }
+                else if (damage.Weapon is RevolverItemClass && damage.Weapon.Id != "6275303a9f372d6ea97f9ec7")
+                {
+                    conditionstoAdd |= EQuestConditionCombat.DamageWithRevolvers;
+                }
                 else if (damage.Weapon is SmgItemClass)
                 {
                     conditionstoAdd |= EQuestConditionCombat.DamageWithSMG;
@@ -55,7 +59,7 @@ namespace QuestsExtended.Quests
                 {
                     conditionstoAdd |= EQuestConditionCombat.DamageWithAR;
                 }
-                else if (damage.Weapon is GrenadeLauncherItemClass)
+                else if (damage.Weapon is GrenadeLauncherItemClass || damage.Weapon is LauncherItemClass || damage.Weapon.Id is "6275303a9f372d6ea97f9ec7")
                 {
                     conditionstoAdd |= EQuestConditionCombat.DamageWithGL;
                 }
