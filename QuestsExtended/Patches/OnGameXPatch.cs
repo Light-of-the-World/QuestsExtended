@@ -38,11 +38,13 @@ internal class OnGameStartedPatch : ModulePatch
         saveDataClass.init();
         PhysicalQuestController.LastPose = "Default";
         AbstractCustomQuestController.isRaidOver = false;
-
+        DumpTriggerZones();
+            /*
         if (ConfigManager.DumpQuestZones.Value)
         {
             DumpTriggerZones();
         }
+            */
     }
 
     private static void DumpTriggerZones()

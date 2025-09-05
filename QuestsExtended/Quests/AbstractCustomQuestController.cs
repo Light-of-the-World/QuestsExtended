@@ -9,7 +9,7 @@ namespace QuestsExtended.Quests;
 internal abstract class AbstractCustomQuestController
 {
     protected static QuestExtendedController _questController;
-    public Player _player;
+    public static Player _player;
     public static bool isRaidOver = true;
     public static bool ShowResetMessage = false;
     public static bool ResetMainMenu = false;
@@ -63,6 +63,10 @@ internal abstract class AbstractCustomQuestController
     /// <param name="value"></param>
     protected static void IncrementCondition(ConditionPair condition, float value = 0f)
     {
+        if (condition.CustomCondition.Zones != null)
+        {
+            if (!IsInZone(condition)) return;
+        }
         _questController.IncrementConditionCounter(condition.Quest, condition.Condition, value);
     }
 
@@ -83,7 +87,7 @@ internal abstract class AbstractCustomQuestController
         return condZones.Any(c => playerZones.Any(p => c == p));
     }
     */
-    private bool IsInZone(ConditionPair condition)
+    public static bool IsInZone(ConditionPair condition)
     {
         if (condition.CustomCondition.Zones is null) return true;
 

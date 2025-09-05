@@ -36,10 +36,10 @@ internal class EnemyKillPatch : ModulePatch
     }
 
     [PatchPostfix]
-    private static void Postfix(LocationStatisticsCollectorAbstractClass __instance, ref DamageInfoStruct damage, ref string playerAccountId)
+    private static void Postfix(LocationStatisticsCollectorAbstractClass __instance, ref DamageInfoStruct damage, ref string playerProfileId)
     {
         //Plugin.Log.LogInfo($"[StatsPatch] OnEnemyKill called. Sending to StatCounterQuestController for processing.");
-        StatCounterQuestController.EnemyKillProcessor(damage, playerAccountId);
+        StatCounterQuestController.EnemyKillProcessor(damage, playerProfileId);
         //Do not forget to remove this log before publication!
     }
 }

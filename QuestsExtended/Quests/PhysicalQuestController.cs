@@ -274,6 +274,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
                 if (_moveSilentFloat > 1f)
                 {
                     int floatResult = (int)Math.Round(_moveSilentFloat, 0);
+                    _moveSilentFloat = 0;
                     return floatResult;
                 }
             }
@@ -283,6 +284,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
                 if (_moveRunfloat > 1f)
                 {
                     int floatResult = (int)Math.Round(_moveRunfloat, 0);
+                    _moveRunfloat = 0;
                     return floatResult;
                 }
             }
@@ -317,6 +319,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
             }
             else if (isProne)
             {
+                Plugin.Log.LogInfo("You are prone");
                 conditionsToCheck |= EQuestConditionGen.MoveDistanceWhileProne;
             }
             else

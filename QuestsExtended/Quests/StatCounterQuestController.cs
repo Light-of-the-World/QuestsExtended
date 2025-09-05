@@ -76,6 +76,12 @@ namespace QuestsExtended.Quests
                         var specialcondition2 = _questController.GetActiveConditions(EQuestConditionCombat.TotalShotDistanceWithSnipers);
                         foreach (var cond in specialcondition2)
                         {
+                            if (cond.CustomCondition.EnemyTypes != null)
+                            {
+                                Player enemy = Singleton<GameWorld>.Instance.GetEverExistedPlayerByID(enemyID);
+                                bool test = CheckForCorrectEnemyType(enemy, cond);
+                                if (!test) continue;
+                            }
                             IncrementCondition(cond, (int)Math.Round(distance, 0));
                         }
                         StaticManager.BeginCoroutine(StartSniperCooldown());
@@ -150,6 +156,8 @@ namespace QuestsExtended.Quests
         }
         public static void EnemyKillProcessor(DamageInfoStruct damageInfo, string enemyID)
         {
+            Player enemy3 = Singleton<GameWorld>.Instance.GetEverExistedPlayerByID(enemyID);
+            Plugin.Log.LogInfo("You killed a " + enemy3.Side);
             EQuestConditionCombat conditionsToAdd = EQuestConditionCombat.EmptyC;
             if (PhysicalQuestController.isCrouched)
             {
@@ -165,10 +173,12 @@ namespace QuestsExtended.Quests
             {
                 //Plugin.Log.LogInfo("Player scored a kill while mounted. Remove this logger before publishing.");
                 conditionsToAdd |= EQuestConditionCombat.KillsWhileMounted;
+                //Plugin.Log.LogInfo("You killed him while mounted");
                 if (damageInfo.Weapon is MachineGunItemClass)
                 {
                     //Plugin.Log.LogInfo("Player scored a kill with an LMG while mounted. Remove this logger before publishing.");
                     conditionsToAdd |= EQuestConditionCombat.MountedKillsWithLMG;
+                    //Plugin.Log.LogInfo("You also used an LMG");
                 }
             }
             if (PhysicalQuestController.isSilent)
