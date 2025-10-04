@@ -64,6 +64,7 @@ public class Plugin : BaseUnityPlugin
         new HoldMostRecentlyDamagedPlayer().Enable();
         new KeyUsedOnDoorPatch().Enable();
         new KeyCardUsedOnDoorPatch().Enable();
+        new PedometerPatch().Enable();
         
     }
     private void FillBannedConditions()

@@ -60,6 +60,21 @@ internal class KeyUsedOnDoorPatch : ModulePatch
         StatCounterQuestController.PlayerUsedKeyToUnlockDoor(key.Template.KeyId);
     }
 }
+internal class PedometerPatch : ModulePatch
+{
+    protected override MethodBase GetTargetMethod()
+    {
+        return AccessTools.Method(typeof(PedometerClass), nameof(PedometerClass.GetDistanceFromMark));
+    }
+    [PatchPostfix]
+    private static void Postfix (PedometerClass __instance, ref float __result, ref EPlayerState state)
+    {
+        if (__instance.player_0.IsAI) return;
+        //Plugin.Log.LogInfo(__result + ", " + state.ToString());
+        PhysicalQuestController.ProcessMovement(__result, state);
+        //This seems good.
+    }
+}
 internal class KeyCardUsedOnDoorPatch : ModulePatch
 {
     protected override MethodBase GetTargetMethod()

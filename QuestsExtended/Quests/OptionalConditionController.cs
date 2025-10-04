@@ -1,24 +1,25 @@
-﻿using EFT.Quests;
+﻿using Comfort.Common;
+using EFT;
+using EFT.Quests;
 using EFT.UI;
 using HarmonyLib;
 using Newtonsoft.Json;
 using QuestsExtended.Models;
+using QuestsExtended.SaveLoadRelatedClasses;
 using SPT.Common.Http;
+using SPT.Common.Utils;
+using SPT.Reflection.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
-using System.Reflection;
-using SPT.Common.Utils;
-using QuestsExtended.SaveLoadRelatedClasses;
-using System.Security.Policy;
 using UnityEngine;
-using Comfort.Common;
-using SPT.Reflection.Utils;
-using EFT;
+using static AnimationEventSystem.EventCondition;
 namespace QuestsExtended.Quests
 {
     internal class OptionalConditionController : AbstractCustomQuestController
@@ -142,7 +143,69 @@ namespace QuestsExtended.Quests
             }
             if (!foundCondition)
             {
-                Plugin.Log.LogError("Condition not found anywhere, we have an issue");
+                //Current testing ground
+                Plugin.Log.LogError("Condition not found anywhere... This must not be an optional condition. Let's increment it manually.");
+                foreach (var quest in Plugin.Quests)
+                {
+                    foreach (var overrideCond in quest.Value.Conditions)
+                    {
+                        if (overrideCond.ConditionId == condition.id)
+                        {
+                            {
+                                string conditionType = overrideCond.ConditionTypeRaw;
+                                var currentConditions = _questController.GetActiveConditions(EQuestConditionGen.EmptyWithQuestStarter);
+                                if (Enum.TryParse(conditionType, out EQuestConditionGen gen))
+                                {
+                                    currentConditions = _questController.GetActiveConditions(gen);
+                                    foreach (var cond69 in currentConditions)
+                                    {
+                                        if (cond69.Condition.id == condition.id) IncrementCondition(cond69);
+                                    }
+                                }
+                                else if (Enum.TryParse(conditionType, out EQuestConditionCombat combat))
+                                {
+                                    currentConditions = _questController.GetActiveConditions(combat);
+                                    foreach (var cond69 in currentConditions)
+                                    {
+                                        if (cond69.Condition.id == condition.id) IncrementCondition(cond69);
+                                    }
+                                }
+                                else if (Enum.TryParse(conditionType, out EQuestConditionHealth health))
+                                {
+                                    currentConditions = _questController.GetActiveConditions(health);
+                                    foreach (var cond69 in currentConditions)
+                                    {
+                                        if (cond69.Condition.id == condition.id) IncrementCondition(cond69);
+                                    }
+                                }
+                                else if (Enum.TryParse(conditionType, out EQuestConditionMisc1 misc))
+                                {
+                                    currentConditions = _questController.GetActiveConditions(health);
+                                    foreach (var cond69 in currentConditions)
+                                    {
+                                        if (cond69.Condition.id == condition.id) IncrementCondition(cond69);
+                                    }
+                                }
+                                else if (Enum.TryParse(conditionType, out EQuestConditionHideout hide))
+                                {
+                                    currentConditions = _questController.GetActiveConditions(hide);
+                                    foreach (var cond69 in currentConditions)
+                                    {
+                                        if (cond69.Condition.id == condition.id) IncrementCondition(cond69);
+                                    }
+                                }
+                                else if (Enum.TryParse(conditionType, out EQuestConditionTrading trade))
+                                {
+                                    currentConditions = _questController.GetActiveConditions(trade);
+                                    foreach (var cond69 in currentConditions)
+                                    {
+                                        if (cond69.Condition.id == condition.id) IncrementCondition(cond69);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 return;
             }
             if (CompletedSaveData.CompletedOptionals.Contains(condition.id))
