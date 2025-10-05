@@ -19,7 +19,14 @@ internal abstract class AbstractCustomQuestController
         _questController = questExtendedController;
         if (Singleton<GameWorld>.Instance != null)
         {
-            _player = Singleton<GameWorld>.Instance.MainPlayer;
+            foreach (var person in Singleton<GameWorld>.Instance.AllAlivePlayersList)
+            {
+                if (person.IsAI) continue;
+                _player = person;
+                break;
+                //We made a change here, watch for breaks.
+            }
+            //_player = Singleton<GameWorld>.Instance.MainPlayer;
         }
         else
         {
