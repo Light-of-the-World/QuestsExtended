@@ -69,7 +69,9 @@ internal class PedometerPatch : ModulePatch
     [PatchPostfix]
     private static void Postfix (PedometerClass __instance, ref float __result, ref EPlayerState state)
     {
-        if (__instance.player_0.IsAI) return;
+        //if (__instance != PhysicalQuestController._pedometer) return; This did not work
+        if (__instance.player_0 != PhysicalQuestController._player) return;
+        //if (__instance.player_0.IsAI) return;
         //Plugin.Log.LogInfo(__result + ", " + state.ToString());
         PhysicalQuestController.ProcessMovement(__result, state);
         //This seems good.

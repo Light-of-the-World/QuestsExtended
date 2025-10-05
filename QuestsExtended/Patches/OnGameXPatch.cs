@@ -39,6 +39,10 @@ internal class OnGameStartedPatch : ModulePatch
         PhysicalQuestController.LastPose = "Default";
         AbstractCustomQuestController.isRaidOver = false;
         DumpTriggerZones();
+        //next line is a fika specific test
+        //Plugin.Log.LogWarning("MainPlayer is listed as"+__instance.MainPlayer.Profile.Nickname);
+        //if (PhysicalQuestController._pedometer != null) Plugin.Log.LogWarning("Pedometer is set");
+        //PhysicalQuestController._pedometer = __instance.MainPlayer.Pedometer;
             /*
         if (ConfigManager.DumpQuestZones.Value)
         {

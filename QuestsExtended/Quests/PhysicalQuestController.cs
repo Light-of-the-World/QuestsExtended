@@ -44,7 +44,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
 
     //timers
     private static bool PositionCheckDelay;
-    private static bool MovementXPCooldown;
+    private static bool MovementXPCooldown = false;
 
     //float storage (I'm sorry CJ)
     private static float _moveAllfloat;
@@ -63,11 +63,21 @@ internal class PhysicalQuestController : AbstractCustomQuestController
     public PhysicalQuestController(QuestExtendedController questExtendedController)
         : base(questExtendedController)
     {
+        foreach (var person in Singleton<GameWorld>.Instance.AllAlivePlayersList)
+        {
+            if (person.IsAI) continue;
+            _physical = person.Physical;
+            _pedometer = person.Pedometer;
+            _movementContext = person.MovementContext;
+            break;
+        }
+        /*
         _physical = Singleton<GameWorld>.Instance.MainPlayer.Physical;
-        //_pedometer = Singleton<GameWorld>.Instance.MainPlayer.Pedometer;
+        _pedometer = Singleton<GameWorld>.Instance.MainPlayer.Pedometer;
         _movementContext = Singleton<GameWorld>.Instance.MainPlayer.MovementContext;
         _playerPos = Singleton<GameWorld>.Instance.MainPlayer.PlayerBody.transform.position;
-
+        if (_playerPos == null) Plugin.Log.LogWarning("Playerpos did not get correctly detected");
+        */
         _physical.EncumberedChanged += SetEncumbered;
         _physical.OverEncumberedChanged += SetOverEncumbered;
         _movementContext.OnPoseChanged += SetPose;
@@ -110,7 +120,10 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         if (isOverEncumbered && !isOverEncumberedRunning)
             StaticManager.BeginCoroutine(OverEncumberedTimer());
 
-        if (_playerPos != null && !MovementXPCooldown)
+        /*if (_playerPos != null && !MovementXPCooldown)
+            BeginMovementIncrement();*/
+
+        if (!MovementXPCooldown)
             BeginMovementIncrement();
 
         //Debug below this line
@@ -153,7 +166,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         {
             if (LastPose == "Standing") return;
             //Plugin.Log.LogWarning("Player is entering prone from crouch");
-            ProgressMovementQuests(CalculateDistance(), true, isSilent);
+            //ProgressMovementQuests(CalculateDistance(), true, isSilent);
             isProne = true;
             isCrouched = false;
             LastPose = "Standing";
@@ -162,7 +175,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         {
             if (LastPose == "Prone") return;
             //Plugin.Log.LogInfo("Player is entering prone from a stand");
-            ProgressMovementQuests(CalculateDistance(), false, isSilent);
+            //ProgressMovementQuests(CalculateDistance(), false, isSilent);
             isProne = true;
             LastPose = "Prone";
         }
@@ -170,14 +183,14 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         {
             isProne = false;
             //Plugin.Log.LogInfo("Player is exiting prone");
-            ProgressMovementQuests(CalculateDistance(), true, isSilent);
+            //ProgressMovementQuests(CalculateDistance(), true, isSilent);
         }
         else isProne = false;
         if (_movementContext.PoseLevel <= 0.6 && !isProne && !isCrouched)
         {
             if (LastPose == "Crouched") return;
             //Plugin.Log.LogInfo("Player is entering crouch");
-            ProgressMovementQuests(CalculateDistance(), true, isSilent);
+            //ProgressMovementQuests(CalculateDistance(), true, isSilent);
             isCrouched = true;
             LastPose = "Crouched";
         }
@@ -185,7 +198,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         {
             if (LastPose == "Standing") return;
             //Plugin.Log.LogInfo("Player is standing from a crouch");
-            ProgressMovementQuests(CalculateDistance(), false, isSilent);
+            //ProgressMovementQuests(CalculateDistance(), false, isSilent);
             isCrouched = false;
             LastPose = "Standing";
         }
@@ -200,10 +213,10 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         {
             //Plugin.Log.LogWarning("Player is acheiving covert movement");
             isSilent = true;
-            ProgressMovementQuests(CalculateDistance(), CheckForPose(), true);
+            //ProgressMovementQuests(CalculateDistance(), CheckForPose(), true);
             return;
         }
-        else { isSilent = false; ProgressMovementQuests(CalculateDistance(), CheckForPose(), false); /*Plugin.Log.LogWarning("Player is NO LONGER acheiving covert movement");*/ }
+        else { isSilent = false; /*ProgressMovementQuests(CalculateDistance(), CheckForPose(), false);*/ /*Plugin.Log.LogWarning("Player is NO LONGER acheiving covert movement");*/ }
     }
     private static IEnumerator EncumberedTimer()
     {
@@ -242,6 +255,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
     private static void BeginMovementIncrement()
     {
         MovementXPCooldown = true;
+        //Plugin.Log.LogInfo("Progressing movement");
         ProgressMovementQuests();
         StaticManager.BeginCoroutine(MovementCooldown());
     }
@@ -289,7 +303,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         }
         return distanceToInt;
     }
-
+    /*
     private static int CalculateDistance()
     {
         if (isRaidOver) return 0;
@@ -307,7 +321,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
             _moveAllfloat += distance;
             if (isCrouched)
             {
-                //Plugin.Log.LogInfo("Incrementing crouched movement by" + distance);
+                Plugin.Log.LogInfo("Incrementing crouched movement by" + distance);
                 _moveCrouchedfloat += distance;
                 if (_moveCrouchedfloat > 1f)
                 {
@@ -318,7 +332,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
             }
             else if (isProne)
             {
-                //Plugin.Log.LogInfo("Incrementing prone movement by" + distance);
+                Plugin.Log.LogInfo("Incrementing prone movement by" + distance);
                 _moveProneFloat += distance;
                 if (_moveProneFloat > 1f)
                 {
@@ -329,7 +343,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
             }
             if (isSilent)
             {
-                //Plugin.Log.LogInfo("Incrementing silent movement by" + distance);
+                Plugin.Log.LogInfo("Incrementing silent movement by" + distance);
                 _moveSilentFloat += distance;
                 if (_moveSilentFloat > 1f)
                 {
@@ -340,7 +354,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
             }
             if (isRunning)
             {
-                //Plugin.Log.LogInfo("Incrementing run movement by" + distance);
+                Plugin.Log.LogInfo("Incrementing run movement by" + distance);
                 _moveRunfloat += distance;
                 if (_moveRunfloat > 1f)
                 {
@@ -359,7 +373,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         //Plugin.Log.LogWarning("Rounded distance between last marked pos and current pos is " + num4 + ".");
         return distanceToInt;
     }
-
+    */
     private static bool CheckForPose()
     {
         if (!isCrouched && isProne) return true;
