@@ -5,7 +5,7 @@ namespace QuestsExtended.Models;
 [Flags]
 public enum EQuestConditionHideout
 {
-    CraftItem = 1 << 0,
+    CraftAnyItem = 1 << 0,
     CraftCyclicItem = 1 << 1,
     CollectScavCase = 1 << 2,
     CollectCultistOffering = 1 << 3,

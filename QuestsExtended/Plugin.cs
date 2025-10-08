@@ -7,12 +7,15 @@ using BepInEx.Logging;
 using Newtonsoft.Json;
 using QuestsExtended.Models;
 using QuestsExtended.Patches;
+using QuestsExtended.Quests;
+using QuestsExtended.SaveLoadRelatedClasses;
 using QuestsExtended.Utils;
+using UnityEngine;
 using static QuestsExtended.Patches.QEFromTraderScreensGroupPatch;
 
 namespace QuestsExtended;
 
-[BepInPlugin("com.dirtbikercjandlotw.QuestsExtended", "Quests Extended", "3.2.4")]
+[BepInPlugin("com.dirtbikercjandlotw.QuestsExtended", "Quests Extended", "3.3.0")]
 public class Plugin : BaseUnityPlugin
 {
     internal const int TarkovVersion = 35392;
@@ -183,15 +186,16 @@ public class Plugin : BaseUnityPlugin
     {
         var directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         directory = Path.Combine(directory, "Quests");
-
+        Plugin.Log.LogInfo(directory);
         var files = Directory.GetFiles(directory);
         
         foreach (var file in files)
         {
+            Plugin.Log.LogInfo("Getting quests from file: " + file.ToString());
             var text = File.ReadAllText(file);
             var quests = JsonConvert.DeserializeObject<Dictionary<string, CustomQuest>>(text);
             
-            Quests.AddRange(quests);
+            if (quests.Count > 0) Quests.AddRange(quests);
         }
         
         Log.LogInfo($"Loaded {Quests.Count} custom quests");

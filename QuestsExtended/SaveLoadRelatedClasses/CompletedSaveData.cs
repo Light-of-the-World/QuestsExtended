@@ -11,7 +11,9 @@ namespace QuestsExtended.SaveLoadRelatedClasses
     {
         public static List<string> CompletedOptionals = new List<string>();
         public static List<string> CompletedMultipleChoice = new List<string>();
+        public static List<string> QuestsStartedByQE = new List<string>();
         public bool hasDoneInit = false;
+        public static bool hasScrubbedAFS = false;
 
         public void init()
         {
@@ -19,7 +21,8 @@ namespace QuestsExtended.SaveLoadRelatedClasses
             LoadCompletedOptionals();
             LoadCompletedMultipleChoice();
         }
-
+        
+        //We need to create save data for when a quest has its AFS ignored by this mod. If a player does not accept that quest before closing the game, they will lose the quest, easily softlocking themselves.
         public void SaveCompletedOptionals()
         {
             var directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -99,6 +102,47 @@ namespace QuestsExtended.SaveLoadRelatedClasses
             {
                 Plugin.Log.LogInfo("No CompletedMultipleChoice.json file found for this profile, starting fresh.");
                 CompletedMultipleChoice = new List<string>();
+            }
+        }
+
+        public void LogQuestThatWasStarted(List<string> quests)
+        {
+            var directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            directory = Path.Combine(directory, "Data");
+            if (!Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+            string fileName = ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.ProfileId + "_SpecialStartedQuests.json";
+            string path = Path.Combine(directory, fileName);
+            /*
+            if (!File.Exists(path))
+                File.Create(path);
+            */
+            if (!File.Exists(path))
+            {
+                using (File.Create(path)) { } // Immediately close it
+            }
+            string data = JsonConvert.SerializeObject(quests, Formatting.Indented);
+            File.WriteAllText(path, data);
+            Plugin.Log.LogInfo($"Saved {quests.Count} started quests to file.");
+        }
+
+        public static void LoadQuestsThatWereStarted()
+        {
+            var directory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            directory = Path.Combine(directory, "Data");
+            string fileName = ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.ProfileId + "_SpecialStartedQuests.json";
+            string path = Path.Combine(directory, fileName);
+
+            if (File.Exists(path))
+            {
+                string json = File.ReadAllText(path);
+                QuestsStartedByQE = JsonConvert.DeserializeObject<List<string>>(json) ?? new List<string>();
+                Plugin.Log.LogInfo($"Loaded {QuestsStartedByQE.Count} quest ids that were started by QE from file.");
+            }
+            else
+            {
+                Plugin.Log.LogInfo("No SpecialStartedQuests.json file found for this profile, starting fresh.");
+                QuestsStartedByQE = new List<string>();
             }
         }
     }

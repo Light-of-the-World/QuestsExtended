@@ -12,6 +12,7 @@ internal abstract class AbstractCustomQuestController
     public static Player _player;
     public static bool isRaidOver = true;
     public static bool ShowResetMessage = false;
+    public static bool ShowSpecialResetMessage = false;
     public static bool ResetMainMenu = false;
 
     protected AbstractCustomQuestController(QuestExtendedController questExtendedController)

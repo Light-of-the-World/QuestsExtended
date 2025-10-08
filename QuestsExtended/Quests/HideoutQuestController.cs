@@ -21,7 +21,7 @@ namespace QuestsExtended.Quests
 
         public static void CollectItemFromHideout(EAreaType eArea)
         {
-            EQuestConditionHideout conditionsToAdd = EQuestConditionHideout.CraftItem;
+            EQuestConditionHideout conditionsToAdd = EQuestConditionHideout.CraftAnyItem;
             var conditions = _questController.GetActiveConditions(conditionsToAdd);
             foreach (var cond in conditions)
             {
@@ -45,6 +45,11 @@ namespace QuestsExtended.Quests
                             break;
                         }
                         else if (name.ToLower() == "medstation" && eArea == EAreaType.MedStation)
+                        {
+                            IncrementCondition(cond, 1);
+                            break;
+                        }
+                        else if (name.ToLower() == "intelligencecenter" && eArea == EAreaType.IntelligenceCenter)
                         {
                             IncrementCondition(cond, 1);
                             break;

@@ -335,6 +335,7 @@ namespace QuestsExtended.Quests
                     //Plugin.Log.LogWarning("Running a method to try and set the quest to completed, expect crashes"); //NOT CRASHING ANYMORE CAUSE IT WORKS!
                     SendQuestIdsForEditing<List<RawQuestClass>>(completedCondition.QuestsToStart);
                     saveData.SaveCompletedMultipleChoice();
+                    saveData.LogQuestThatWasStarted(completedCondition.QuestsToStart);
                     if (Singleton<GameWorld>.Instance != null) return;
                     Plugin.Log.LogInfo("Resetting main menu for QE.");
                     ShowResetMessage = true;
@@ -376,6 +377,9 @@ namespace QuestsExtended.Quests
             {
                 Plugin.Log.LogInfo("Not loaded yet, waiting...");
                 yield return new WaitForSeconds(1f);
+                MenuUI menuUI = MenuUI.Instance;
+                QuestExtendedController cont = menuUI.GetComponent<QuestExtendedController>();
+                if (cont != null) saveData = menuUI.GetComponent<CompletedSaveData>();
             }
             if (CompletedSaveData.CompletedMultipleChoice.Contains(questId)) yield break;
             Plugin.Log.LogInfo("All good! Continuing on");
@@ -391,6 +395,38 @@ namespace QuestsExtended.Quests
 
         }
 
+        public static void RemoveAFSOnGameLaunch (List<string> questIds)
+        {
+            SendQuestIdsForEditing<List<RawQuestClass>>(questIds);
+            Plugin.Log.LogInfo("We are sending " + questIds.Count + " quests to have their AFS scrubbed");
+            bool allQuestsStarted = true;
+            List<string> allQuestIdsInProfile = new List<string>();
+            foreach (var quest in ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.QuestsData)
+            {
+                allQuestIdsInProfile.Add(quest.Id);
+                if (quest.Status == EQuestStatus.AvailableForStart)
+                {
+                    if (questIds.Contains(quest.Id))
+                    {
+                        allQuestsStarted = false; Plugin.Log.LogInfo("Found a quest that needs to be loaded!"); break;
+                    }
+                }
+            }
+            if (allQuestsStarted)
+            {
+                foreach (string qId in questIds)
+                {
+                    if (!allQuestIdsInProfile.Contains(qId))
+                    {
+                        allQuestsStarted = false; Plugin.Log.LogInfo("Found a quest that needs to be loaded!"); break;
+                    }
+                }
+            }
+            if (allQuestsStarted) return;
+            ShowSpecialResetMessage = true;
+            AdvisePlayerOfSpecialReset();
+        }
+
         private static void AdvisePlayerOfReset()
         {
             if (AbstractCustomQuestController.ShowResetMessage == true)
@@ -402,6 +438,21 @@ namespace QuestsExtended.Quests
                 PreloaderUI preloaderUi = Singleton<PreloaderUI>.Instance;
                 string title = "Quests Extended Notice";
                 string description = "Quests Extended has detected a new quest that is ready to be loaded. We need to briefly restart the main menu. Thank you for understanding.";
+                Singleton<PreloaderUI>.Instance.ShowCriticalErrorScreen(title, description, ErrorScreen.EButtonType.OkButton, 180);
+            }
+        }
+
+        private static void AdvisePlayerOfSpecialReset()
+        {
+            if (AbstractCustomQuestController.ShowSpecialResetMessage == true)
+            {
+                Plugin.Log.LogInfo("Trying to create the initial load reset message");
+                AbstractCustomQuestController.ShowSpecialResetMessage = false;
+                AbstractCustomQuestController.ResetMainMenu = true;
+                ErrorScreen errorScreen = new ErrorScreen();
+                PreloaderUI preloaderUi = Singleton<PreloaderUI>.Instance;
+                string title = "Quests Extended Notice";
+                string description = "Quests Extended needs to reload the menu to ensure a quest you didn't accept last play session is still available. This is to prevent softlocking of custom traders' questlines. Thank you for understanding.";
                 Singleton<PreloaderUI>.Instance.ShowCriticalErrorScreen(title, description, ErrorScreen.EButtonType.OkButton, 180);
             }
         }

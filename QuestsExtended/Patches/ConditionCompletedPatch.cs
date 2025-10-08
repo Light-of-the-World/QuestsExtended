@@ -66,6 +66,8 @@ namespace QuestsExtended.Patches
         private static void Postfix(ConditionCounterManager __instance, ref int valueToAdd, ref TaskConditionCounterClass counter, int __state)
         {
             if (counter == null) return;
+            if (counter.Conditional == null) return;
+            if (counter.Conditional.Id == null) return;
             string questId = counter.Conditional.Id;
             if (Plugin.BannedQuestIds.Contains(questId)) return;
             string counterId = counter.Id;

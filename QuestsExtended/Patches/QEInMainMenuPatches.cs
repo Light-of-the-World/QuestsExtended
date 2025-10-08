@@ -171,6 +171,12 @@ namespace QuestsExtended.Patches
         {
             Plugin.Log.LogInfo("MMCC.method_5 ran");
             if (OptionalConditionController.mainMenuControllerClass != __instance) OptionalConditionController.mainMenuControllerClass = __instance;
+            if (!CompletedSaveData.hasScrubbedAFS)
+            {
+                CompletedSaveData.hasScrubbedAFS = true;
+                CompletedSaveData.LoadQuestsThatWereStarted();
+                OptionalConditionController.RemoveAFSOnGameLaunch(CompletedSaveData.QuestsStartedByQE);
+            }
         }
     }
 
