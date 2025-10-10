@@ -119,8 +119,10 @@ namespace QuestsExtended.Quests
                         {
                             if (quest.Value.IsMultipleChoiceStarter)
                             {
+                                //Plugin.Log.LogInfo("Confirming that this is a quest that starts other quests. Trying to do it normally. Adding addition loggers for debugging.");
                                 foreach (var overrideCond in quest.Value.Conditions)
                                 {
+                                    //Plugin.Log.LogInfo(overrideCond.ConditionId);
                                     if (overrideCond.ConditionId == condition.id)
                                     {
                                         if (CompletedSaveData.CompletedMultipleChoice.Contains(quest.Value.QuestId)) { Plugin.Log.LogInfo("Already did this, returning."); return; }
@@ -128,14 +130,14 @@ namespace QuestsExtended.Quests
                                         Plugin.Log.LogInfo("Got the condition, updating quests.");
                                         SendQuestIdsForEditing<List<RawQuestClass>>(overrideCond.QuestsToStart);
                                         saveData.SaveCompletedMultipleChoice();
-                                        if (Singleton<GameWorld>.Instance != null) return;
+                                        if (Singleton<GameWorld>.Instance != null) return;  
                                         Plugin.Log.LogInfo("Resetting main menu for QE.");
                                         ShowResetMessage = true;
                                         AdvisePlayerOfReset();
-                                        //mainMenuControllerClass.method_5();
                                         return;
                                     }
                                 }
+                                Plugin.Log.LogError("We were unable to complete it normally.");
                             }
                         }
                     }
@@ -144,7 +146,7 @@ namespace QuestsExtended.Quests
             if (!foundCondition)
             {
                 //Current testing ground
-                Plugin.Log.LogError("Condition not found anywhere... This must not be an optional condition. Let's increment it manually.");
+                Plugin.Log.LogWarning("Condition not found anywhere... This must not be an optional condition. Let's increment it manually.");
                 foreach (var quest in Plugin.Quests)
                 {
                     foreach (var overrideCond in quest.Value.Conditions)
