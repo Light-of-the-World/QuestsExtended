@@ -137,8 +137,8 @@ namespace QuestsExtended.Quests
                                         return;
                                     }
                                 }
-                                Plugin.Log.LogError("We were unable to complete it normally.");
                             }
+                            Plugin.Log.LogError("We were unable to complete it normally.");
                         }
                     }
                 }
