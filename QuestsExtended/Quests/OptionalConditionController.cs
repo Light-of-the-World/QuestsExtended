@@ -73,6 +73,17 @@ namespace QuestsExtended.Quests
                     foundCondition = true; correctCond = cond; break;
                 }
             }
+            if (saveData == null)
+            {
+                MenuUI menuUI = MenuUI.Instance;
+                saveData = menuUI.GetComponent<CompletedSaveData>();
+                if (saveData == null)
+                {
+                    Plugin.Log.LogInfo("Why is saveData still null?");
+                    saveData = menuUI.GetOrAddComponent<CompletedSaveData>();
+                    saveData.init();
+                }
+            }
             if (!foundCondition)
             {
                 Plugin.Log.LogWarning($"Condition not found, Checking some things. Condition id we're looking for is {condition.id}.");
@@ -87,7 +98,7 @@ namespace QuestsExtended.Quests
                             {
                                 if (overrideCond.ConditionId == condition.id)
                                 {
-                                    if (CompletedSaveData.CompletedMultipleChoice.Contains(quest.Value.QuestId)) { Plugin.Log.LogInfo("Already did this, returning."); return; }
+                                    if (CompletedSaveData.CompletedMultipleChoice.Contains(quest.Value.QuestId)) { Plugin.Log.LogInfo("Already did this, returning. Logger id: 1"); return; }
                                     CompletedSaveData.CompletedMultipleChoice.Add(quest.Value.QuestId);
                                     Plugin.Log.LogInfo("Got the condition, updating quests.");
                                     SendQuestIdsForEditing<List<RawQuestClass>>(overrideCond.QuestsToStart);
@@ -125,7 +136,7 @@ namespace QuestsExtended.Quests
                                     //Plugin.Log.LogInfo(overrideCond.ConditionId);
                                     if (overrideCond.ConditionId == condition.id)
                                     {
-                                        if (CompletedSaveData.CompletedMultipleChoice.Contains(quest.Value.QuestId)) { Plugin.Log.LogInfo("Already did this, returning."); return; }
+                                        if (CompletedSaveData.CompletedMultipleChoice.Contains(quest.Value.QuestId)) { Plugin.Log.LogInfo("Already did this, returning. Logger id: 2"); return; }
                                         CompletedSaveData.CompletedMultipleChoice.Add(quest.Value.QuestId);
                                         Plugin.Log.LogInfo("Got the condition, updating quests.");
                                         SendQuestIdsForEditing<List<RawQuestClass>>(overrideCond.QuestsToStart);
@@ -138,8 +149,8 @@ namespace QuestsExtended.Quests
                                     }
                                 }
                             }
-                            Plugin.Log.LogError("We were unable to complete it normally.");
                         }
+                        Plugin.Log.LogError("We were unable to complete it normally.");
                     }
                 }
             }
@@ -154,10 +165,21 @@ namespace QuestsExtended.Quests
                         if (overrideCond.ConditionId == condition.id)
                         {
                             {
+                                if (overrideCond.ConditionTypeRaw == null)
+                                {
+                                    Plugin.Log.LogWarning($"Condition {overrideCond.ConditionId} does not have a ConditionTypeRaw!!! The quest format must be wrong. Aborting manual incrementation. Quest id: {quest.Value.QuestId}");
+                                    return;
+                                }
                                 string conditionType = overrideCond.ConditionTypeRaw;
                                 var currentConditions = _questController.GetActiveConditions(EQuestConditionGen.EmptyWithQuestStarter);
                                 if (Enum.TryParse(conditionType, out EQuestConditionGen gen))
                                 {
+                                    if (gen == EQuestConditionGen.CompleteOptionals)
+                                    {
+                                        if (quest.Value.QuestName != null) Plugin.Log.LogError($"It actually was an optional condition, somehow. Fix this! Condition id: {condition.id}. Quest name: {quest.Value.QuestName}");
+                                        else Plugin.Log.LogError($"It actually was an optional condition, somehow. Fix this! Condition id: {condition.id}. Quest id: {quest.Value.QuestId}");
+                                        return;
+                                    }
                                     currentConditions = _questController.GetActiveConditions(gen);
                                     foreach (var cond69 in currentConditions)
                                     {
@@ -217,6 +239,11 @@ namespace QuestsExtended.Quests
             }
             if (foundCondition)
             {
+                if (CompletedSaveData.CompletedOptionals.Contains(condition.id))
+                {
+                    Plugin.Log.LogInfo("Tried to increment a condition that has already been completed. Logger id: 3");
+                    return;
+                }
                 CompletedSaveData.CompletedOptionals.Add(condition.id);
                 foreach (var quest in Plugin.Quests)
                 {
@@ -235,9 +262,9 @@ namespace QuestsExtended.Quests
                         }
                     }
                 }
-                Plugin.Log.LogInfo($"We are adding the id {condition.id} to CompletedOptionals and increasing the CompleteOptionals condition by 1.");
-                IncrementCondition(correctCond, 1);
+                Plugin.Log.LogInfo($"We are adding the id {condition.id} to CompletedOptionals and increasing the CompleteOptionals condition of {correctCond.Condition.id} by 1.");
                 saveData.SaveCompletedOptionals();
+                IncrementCondition(correctCond, 1);
             }
             if (!foundCondition)
             {
@@ -284,7 +311,7 @@ namespace QuestsExtended.Quests
 
                 if (completedCondition.QuestsToStart != null && completedCondition.QuestsToStart.Count > 0)
                 {
-                    if (CompletedSaveData.CompletedMultipleChoice.Contains(correctCond.Quest.Id)) return;
+                    if (CompletedSaveData.CompletedMultipleChoice.Contains(correctCond.Quest.Id)) { Plugin.Log.LogInfo("Tried to increment a condition that already exists in CompletedMultipleChoice. Returning. Logger id: 5"); return; }
                     CompletedSaveData.CompletedMultipleChoice.Add(correctCond.Quest.Id);
                     Plugin.Log.LogInfo($"We are adding the id {correctCond.Quest.Id} to CompletedMultipleChoice and attempting to load the correct quests");
                     //Plugin.Log.LogInfo($"StartMultiChoiceQuest: Sending {completedCondition.QuestsToStart.Count} quest(s) to the server.");
@@ -360,7 +387,7 @@ namespace QuestsExtended.Quests
                 StaticManager.BeginCoroutine(DelayedHandleQuestStartingConditionCompletion(questId, cond));
                 return;
             }
-            if (CompletedSaveData.CompletedMultipleChoice.Contains(questId)) return;
+            if (CompletedSaveData.CompletedMultipleChoice.Contains(questId)) { Plugin.Log.LogInfo("Tried to increment a condition that already exists in CompletedMultipleChoice. Returning. Logger id: 6"); return; }
             Plugin.Log.LogInfo("All good! Continuing on");
             CompletedSaveData.CompletedMultipleChoice.Add(questId);
             SendQuestIdsForEditing<List<RawQuestClass>>(cond.QuestsToStart);
@@ -530,7 +557,7 @@ namespace QuestsExtended.Quests
             }
             catch (Exception ex)
             {
-                Plugin.Log.LogError("Oh look, the stupid worthless piece of shit method broke again. Please send this to the mod author" + ex);
+                Plugin.Log.LogError("Oh look, the stupid worthless piece of shit method broke again. Please send this to the mod author: " + ex);
             }
         }
     }
