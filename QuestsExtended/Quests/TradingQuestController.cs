@@ -19,7 +19,7 @@ namespace QuestsExtended.Quests
 
         public void Init()
         {
-            Plugin.Log.LogInfo("Created a TradingQuestController. We are ready to add code here.");
+            Plugin.Log.LogInfo("Created a TradingQuestController.");
         }
 
         public static void PurchaseMade(int amount, string currencyType, string traderId)
