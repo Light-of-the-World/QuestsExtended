@@ -9,6 +9,10 @@ using QuestsExtended.SaveLoadRelatedClasses;
 using SPT.Common.Http;
 using SPT.Common.Utils;
 using SPT.Reflection.Utils;
+using SPTarkov.DI.Annotations;
+using SPTarkov.Server.Core.DI;
+using SPTarkov.Server.Core.Models.Eft.Common;
+using SPTarkov.Server.Core.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -399,7 +403,77 @@ namespace QuestsExtended.Quests
             //mainMenuControllerClass.method_5();
             return;
         }
+        /*
+        private class ServerResponse<T>
+        {
+            public T data { get; set; }
+        }
+        public static void SendQuestIdsForEditing<T>(List<string> questIds, T data = default)
+        {
+            try
+            {
+                var templates = RequestHandler.PostJson("/QE/StartMultiChoice", JsonConvert.SerializeObject(questIds));
+                JsonConvert.DeserializeObject<ServerResponse<List<RawQuestClass>>>(templates, new JsonConverter[] { new GClass1866<ECompareMethod>(true), new GClass1643<GClass1642, Condition, string>() });
+            }
+            catch (Exception ex)
+            {
+                Plugin.Log.LogError("Did not send the quest list properly: " + ex);
+            }
+        }
+        */
+        public static void WTTChangeHead(List<string> questIds)
+        {
+            if (questIds == null)
+            {
+                Plugin.Log.LogWarning("How are we sending 0 ids???");
+                return;
+            }
+            var response = Post<string>("/QE/QEScrubAFS", questIds);
+            if (response != null)
+            {
+                Console.WriteLine("HeadVoiceSelector: Change Head Route has been requested");
+            }
 
+        }
+        public static T Post<T>(string url, List<string> data)
+        {
+            if (url == null)
+            {
+                Console.WriteLine("Error: url is null.");
+                return default(T);
+            }
+
+            if (data == null)
+            {
+                Console.WriteLine("Error: data is null.");
+                return default(T);
+            }
+
+            try
+            {
+                // Convert the string data to JSON format
+                string jsonData = JsonConvert.SerializeObject(new { Data = data });
+#if DEBUG
+                Console.WriteLine($"Sending JSON data to {url}: {jsonData}");
+#endif
+                var req = RequestHandler.PostJson(url, jsonData);
+#if DEBUG
+                Console.WriteLine($"Received response: {req}");
+#endif
+                if (req == null)
+                {
+                    Console.WriteLine("Error: Response is null.");
+                    return default(T);
+                }
+
+                return default(T);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error occurred during request: {ex.Message}");
+                return default(T);
+            }
+        }
         private static IEnumerator DelayedHandleQuestStartingConditionCompletion (string questId, CustomCondition cond)
         {
             while (saveData == null)
@@ -496,16 +570,12 @@ namespace QuestsExtended.Quests
             QuestExtendedController cont = menuUI.GetComponent<QuestExtendedController>();
             UnityEngine.Object.Destroy(cont);
         }
-        private class ServerResponse<T>
+        public static void SendQuestIdsForEditing<T>(List<string> questIds)
         {
-            public T data { get; set; }
-        }
-        public static void SendQuestIdsForEditing<T>(List<string> questIds, T data = default)
-        {
+            //Given that it's all C# now, I think we just identify the class this was being used in and scrub the AFS from there.
             try
             {
-                var templates = RequestHandler.PostJson("/QE/StartMultiChoice", JsonConvert.SerializeObject(questIds));
-                JsonConvert.DeserializeObject<ServerResponse<List<RawQuestClass>>>(templates, new JsonConverter[] { new GClass1637<ECompareMethod>(true), new GClass1643<GClass1642, Condition, string>() });
+
             }
             catch (Exception ex)
             {
@@ -527,13 +597,13 @@ namespace QuestsExtended.Quests
                 {
                     //Plugin.Log.LogInfo($"Checking quest {quest.Id}");
                     if (quest.Template == null) continue;
-                    if (quest.Template.conditionsDict_0 == null) continue;
-                    foreach (var cond in quest.Template.conditionsDict_0)
+                    if (quest.Template.ConditionsDict_0 == null) continue;
+                    foreach (var cond in quest.Template.ConditionsDict_0)
                     {
                         //Plugin.Log.LogInfo($"Checking a cond in quest {quest.Id}");
                         if (cond.Value == null) continue;
-                        if (cond.Value.list_0 == null) continue;
-                        foreach (var condition in cond.Value.list_0)
+                        if (cond.Value.List_0 == null) continue;
+                        foreach (var condition in cond.Value.List_0)
                         {
                             //Plugin.Log.LogInfo($"I don't even know anymore");
                             if (condition.id == conditionId)

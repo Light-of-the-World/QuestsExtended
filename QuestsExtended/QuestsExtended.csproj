@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net471</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <AssemblyName>QuestsExtended</AssemblyName>
         <Description>New Quest Conditions!</Description>
         <Version>1.0.0</Version>
@@ -72,7 +72,7 @@
             <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.AudioModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.CoreModule">
-            <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.CoreModule.dll</HintPath>
+          <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.CoreModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.IMGUIModule">
             <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.IMGUIModule.dll</HintPath>
@@ -86,6 +86,14 @@
         <Reference Include="UnityEngine.AnimationModule">
             <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.AnimationModule.dll</HintPath>
         </Reference>
+        <PackageReference Include="FastCloner" Version="3.3.16" />
+        <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" Aliases="Brains" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+        <PackageReference Include="SemanticVersioning" Version="3.0.0" />
+      <PackageReference Include="SPTarkov.Common" Version="4.0.4" />
+      <PackageReference Include="SPTarkov.DI" Version="4.0.4" />
+      <PackageReference Include="SPTarkov.Server.Core" Version="4.0.4" />
+      <PackageReference Include="System.IO.Hashing" Version="10.0.0" />
     </ItemGroup>
 
     <ItemGroup>

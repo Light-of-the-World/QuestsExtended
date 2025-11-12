@@ -21,7 +21,7 @@ namespace QuestsExtended.Patches
         }
 
         [PatchPostfix]
-        private static void Postfix(HideoutClass __instance, GClass2193 producer)
+        private static void Postfix(HideoutClass __instance, GClass2431 producer)
         {
             EAreaType eArea = producer.AreaType;
             if (eArea == EAreaType.WaterCollector || eArea == EAreaType.BitcoinFarm || eArea == EAreaType.BoozeGenerator)

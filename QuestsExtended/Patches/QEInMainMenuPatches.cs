@@ -20,7 +20,6 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using System;
 using System.Globalization;
-using System.Runtime.Remoting.Lifetime;
 
 namespace QuestsExtended.Patches
 {

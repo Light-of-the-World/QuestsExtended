@@ -70,7 +70,7 @@ internal class PedometerPatch : ModulePatch
     private static void Postfix (PedometerClass __instance, ref float __result, ref EPlayerState state)
     {
         //if (__instance != PhysicalQuestController._pedometer) return; This did not work
-        if (__instance.player_0 != PhysicalQuestController._player) return;
+        if (__instance.Player_0 != PhysicalQuestController._player) return;
         //if (__instance.player_0.IsAI) return;
         //Plugin.Log.LogInfo(__result + ", " + state.ToString());
         PhysicalQuestController.ProcessMovement(__result, state);
@@ -187,8 +187,8 @@ internal class DestroyLimbsPatch : ModulePatch
         if (__instance == null || damageInfo.Weapon == null) return;
         if (!damageInfo.Player.IsAI)
         {
-            if (__instance.Dictionary_0 == null || __instance.dictionary_0.Count <= 0) return;
-            GClass2814<ActiveHealthController.GClass2813>.BodyPartState bodyPartState = __instance.Dictionary_0[bodyPart];
+            if (__instance.Dictionary_0 == null || __instance.Dictionary_0.Count <= 0) return;
+            GClass3009<ActiveHealthController.GClass3008>.BodyPartState bodyPartState = __instance.Dictionary_0[bodyPart];
             float health = bodyPartState.Health.Current;
             health -= damageInfo.Damage;
             if (!bodyPartState.IsDestroyed && health <= 0)

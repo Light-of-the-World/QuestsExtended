@@ -15,12 +15,13 @@ namespace QuestsExtended.Patches
     {
         protected override MethodBase GetTargetMethod()
         {
-            return AccessTools.Method(typeof(Switch), nameof(Switch.method_7));
+            return AccessTools.Method(typeof(Switch), nameof(Switch.method_5));
         }
         [PatchPostfix]
         private static void Postfix(Switch __instance, ref Turnable.EState state)
         {
             //Plugin.Log.LogInfo($"[SwitchPatch] Switch.method_7 called, logging some relavent information: state to string: {state.ToString()}. Switch instance's TypeKey: {__instance.TypeKey}.");
+            if (__instance.Lamps != null) return;
             StatCounterQuestController.PowerSwitchInteractedWith();
         }
     }
