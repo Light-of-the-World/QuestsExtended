@@ -13,14 +13,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="SPTarkov.Common" Version="4.0.3" />
     <PackageReference Include="SPTarkov.DI" Version="4.0.3" />
     <PackageReference Include="SPTarkov.Server.Core" Version="4.0.3" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy &quot;$(TargetPath)&quot; &quot;..\..\..\SPT\user\mods\QuestsExtended\$(TargetName).dll&quot;" />
+    <Exec Command="copy &quot;$(TargetPath)&quot; &quot;..\..\..\SPT\user\mods\$(TargetName).dll&quot;&#xA;if $(ConfigurationName) == Debug (&#xA;    copy &quot;$(ProjectDir)$(OutDir)$(TargetName).pdb&quot; &quot;..\..\..\SPT\user\mods$(TargetName).pdb&quot;&#xA;) else (&#xA;    del &quot;..\..\..\SPT\user\mods\$(TargetName).pdb&quot;&#xA;)" />
   </Target>
 
 </Project>

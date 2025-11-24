@@ -13,7 +13,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="SPTarkov.Common" Version="4.0.3" />
     <PackageReference Include="SPTarkov.DI" Version="4.0.3" />
     <PackageReference Include="SPTarkov.Server.Core" Version="4.0.3" />
