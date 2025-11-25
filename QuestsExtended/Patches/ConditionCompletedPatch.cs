@@ -69,9 +69,7 @@ namespace QuestsExtended.Patches
             if (counter.Conditional == null) return;
             if (counter.Conditional.Id == null) return;
             string questId = counter.Conditional.Id;
-            if (Plugin.BannedQuestIds.Contains(questId)) return;
             string counterId = counter.Id;
-            if (Plugin.BannedConditionIds.Contains(counterId)) return;
             //Plugin.Log.LogInfo($"(POSTFIX)Quest {questId} just changed {counterId}'s value by {valueToAdd}, making it {counter.Value}.");
             if (__state != counter.Value)
             {

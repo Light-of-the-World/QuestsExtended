@@ -12,6 +12,7 @@ using SPT.Reflection.Utils;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
 using SPTarkov.Server.Core.Models.Eft.Common;
+using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Utils;
 using System;
 using System.Collections;
@@ -70,22 +71,37 @@ namespace QuestsExtended.Quests
         {
             bool foundCondition = false;
             ConditionPair correctCond = null;
-            foreach (var cond in conditions)
+            if (conditions != null)
             {
-                if (cond.Condition.ChildConditions.Contains(condition))
+                foreach (var cond in conditions)
                 {
-                    foundCondition = true; correctCond = cond; break;
+                    if (cond.Condition.ChildConditions.Contains(condition))
+                    {
+                        foundCondition = true; correctCond = cond; break;
+                    }
                 }
             }
             if (saveData == null)
             {
-                MenuUI menuUI = MenuUI.Instance;
-                saveData = menuUI.GetComponent<CompletedSaveData>();
-                if (saveData == null)
+                if (MenuUI.Instance == null)
                 {
-                    Plugin.Log.LogInfo("Why is saveData still null?");
-                    saveData = menuUI.GetOrAddComponent<CompletedSaveData>();
-                    saveData.init();
+                    Plugin.Log.LogWarning("MenuUI isn't loaded yet! Creating a temp saveData.");
+                    if (Singleton<GameWorld>.Instance == null)
+                    {
+                        Plugin.Log.LogError("There's no GameWorld Instance either. We need to find something else.");
+                    }
+                    saveData = Singleton<GameWorld>.Instance.GetOrAddComponent<CompletedSaveData>();
+                }
+                else
+                {
+                    MenuUI menuUI = MenuUI.Instance;
+                    saveData = menuUI.GetComponent<CompletedSaveData>();
+                    if (saveData == null)
+                    {
+                        Plugin.Log.LogInfo("Why is saveData still null?");
+                        saveData = menuUI.GetOrAddComponent<CompletedSaveData>();
+                        saveData.init();
+                    }
                 }
             }
             if (!foundCondition)
@@ -105,6 +121,12 @@ namespace QuestsExtended.Quests
                                     if (CompletedSaveData.CompletedMultipleChoice.Contains(quest.Value.QuestId)) { Plugin.Log.LogInfo("Already did this, returning. Logger id: 1"); return; }
                                     CompletedSaveData.CompletedMultipleChoice.Add(quest.Value.QuestId);
                                     Plugin.Log.LogInfo("Got the condition, updating quests.");
+                                    if (overrideCond.QuestsToStart == null || overrideCond.QuestsToStart.Count == 0)
+                                    {
+                                        if (quest.Value.QuestName != null) Plugin.Log.LogWarning($"Condition {overrideCond.ConditionId} in quest {quest.Value.QuestName} is marked as a multiple choice started but has no quests to start.");
+                                        else Plugin.Log.LogWarning($"Condition {overrideCond.ConditionId} in quest {quest.Value.QuestId} is marked as a multiple choice started but has no quests to start.");
+                                        return;
+                                    }
                                     SendQuestIdsForEditing<List<RawQuestClass>>(overrideCond.QuestsToStart);
                                     saveData.SaveCompletedMultipleChoice();
                                     if (Singleton<GameWorld>.Instance != null) return;
@@ -143,6 +165,12 @@ namespace QuestsExtended.Quests
                                         if (CompletedSaveData.CompletedMultipleChoice.Contains(quest.Value.QuestId)) { Plugin.Log.LogInfo("Already did this, returning. Logger id: 2"); return; }
                                         CompletedSaveData.CompletedMultipleChoice.Add(quest.Value.QuestId);
                                         Plugin.Log.LogInfo("Got the condition, updating quests.");
+                                        if (overrideCond.QuestsToStart == null || overrideCond.QuestsToStart.Count == 0)
+                                        {
+                                            if (quest.Value.QuestName != null) Plugin.Log.LogWarning($"Condition {overrideCond.ConditionId} in quest {quest.Value.QuestName} is marked as a multiple choice started but has no quests to start.");
+                                            else Plugin.Log.LogWarning($"Condition {overrideCond.ConditionId} in quest {quest.Value.QuestId} is marked as a multiple choice started but has no quests to start.");
+                                            return;
+                                        }
                                         SendQuestIdsForEditing<List<RawQuestClass>>(overrideCond.QuestsToStart);
                                         saveData.SaveCompletedMultipleChoice();
                                         if (Singleton<GameWorld>.Instance != null) return;  
@@ -270,6 +298,7 @@ namespace QuestsExtended.Quests
                 saveData.SaveCompletedOptionals();
                 IncrementCondition(correctCond, 1);
             }
+            Plugin.Log.LogInfo("8");
             if (!foundCondition)
             {
                 var newConditions = conditions = _questController.GetActiveConditions(EQuestConditionGen.EmptyWithQuestStarter);
@@ -331,6 +360,7 @@ namespace QuestsExtended.Quests
             }
             else
             {
+                Plugin.Log.LogInfo("9");
                 if (!Plugin.Quests.TryGetValue(correctCond.Quest.Id, out CustomQuest customQuest))
                 {
                     Plugin.Log.LogWarning($"StartMultiChoiceQuest: Could not find CustomQuest data for quest ID {correctCond.Quest.Id}");
@@ -349,7 +379,7 @@ namespace QuestsExtended.Quests
                         break;
                     }
                 }
-
+                Plugin.Log.LogInfo("10");
                 if (!conditionFound || !customQuest.IsMultipleChoiceStarter)
                 {
                     return;
@@ -393,6 +423,11 @@ namespace QuestsExtended.Quests
             }
             if (CompletedSaveData.CompletedMultipleChoice.Contains(questId)) { Plugin.Log.LogInfo("Tried to increment a condition that already exists in CompletedMultipleChoice. Returning. Logger id: 6"); return; }
             Plugin.Log.LogInfo("All good! Continuing on");
+            if (cond.QuestsToStart == null || cond.QuestsToStart.Count == 0)
+            {
+                Plugin.Log.LogWarning($"Condition {cond.ConditionId} was direct called, but does not have any ids in QuestsToStart. Please locate this condition!");
+                return;
+            }
             CompletedSaveData.CompletedMultipleChoice.Add(questId);
             SendQuestIdsForEditing<List<RawQuestClass>>(cond.QuestsToStart);
             saveData.SaveCompletedMultipleChoice();
@@ -421,20 +456,6 @@ namespace QuestsExtended.Quests
             }
         }
         */
-        public static void WTTChangeHead(List<string> questIds)
-        {
-            if (questIds == null)
-            {
-                Plugin.Log.LogWarning("How are we sending 0 ids???");
-                return;
-            }
-            var response = Post<string>("/QE/QEScrubAFS", questIds);
-            if (response != null)
-            {
-                Console.WriteLine("HeadVoiceSelector: Change Head Route has been requested");
-            }
-
-        }
         public static T Post<T>(string url, List<string> data)
         {
             if (url == null)
@@ -500,6 +521,11 @@ namespace QuestsExtended.Quests
 
         public static void RemoveAFSOnGameLaunch (List<string> questIds)
         {
+            if (questIds == null || questIds.Count == 0)
+            {
+                Plugin.Log.LogWarning("RemoveAFSOnGameLaunch tried to send 0 quest ids to scrub. Nullifying.");
+                return;
+            }
             SendQuestIdsForEditing<List<RawQuestClass>>(questIds);
             Plugin.Log.LogInfo("We are sending " + questIds.Count + " quests to have their AFS scrubbed");
             bool allQuestsStarted = true;
@@ -572,17 +598,33 @@ namespace QuestsExtended.Quests
         }
         public static void SendQuestIdsForEditing<T>(List<string> questIds)
         {
-            //Given that it's all C# now, I think we just identify the class this was being used in and scrub the AFS from there.
             try
             {
-
+                if (questIds.Count != 0) Plugin.Log.LogInfo($"We are sending {questIds.Count} to the server for AFS removal.");
+                else
+                {
+                    Plugin.Log.LogError("Tried sending 0 quest ids to the server. Please ensure you are sending at least one id before using this method.");
+                    return;
+                }
+                var data = new SendIdsForAFS()
+                {
+                    AfsQuestIds = questIds
+                };
+                RequestHandler.PostJson("/QE/QEScrubAFS", JsonConvert.SerializeObject(data));
+                //RequestHandler.PostJson("/QE/QEScrubAFS", JsonConvert.SerializeObject(new SendIdsForAFS() { afsQuestIds = questIds }, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+                //JsonConvert.DeserializeObject<ServerResponse<List<RawQuestClass>>>(templates, new JsonConverter[] { new GClass1866<ECompareMethod>(true), new GClass1643<GClass1642, Condition, string>() });
+                saveData.LogQuestThatWasStarted(questIds);
             }
             catch (Exception ex)
             {
                 Plugin.Log.LogError("Did not send the quest list properly: " + ex);
             }
         }
-
+        public class SendIdsForAFS
+        {
+            [JsonProperty("templateIds")]
+            public List<string> AfsQuestIds = new List<string>();
+        }
         public static void HandleVanillaConditionChanged(string conditionId, int currentValue)
         {
             try
@@ -592,6 +634,7 @@ namespace QuestsExtended.Quests
                 if (conditions.Count == 0) return; //No active quests with CompleteOptionals, no need to run this.
                 */
                 //Plugin.Log.LogInfo("Grabbing quests from the backend");
+                
                 var activeQuests = ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.QuestsData;
                 foreach (var quest in activeQuests)
                 {

@@ -94,11 +94,11 @@ internal class OnUnregisterPlayerPatch : ModulePatch
     }
 }
 
-internal class IHopeThisWorks : ModulePatch
+internal class CreateQEInMainMenuOnInventoryScreenClick : ModulePatch
 {
     protected override MethodBase GetTargetMethod()
     {
-        return AccessTools.Method(typeof(InventoryScreen), nameof(InventoryScreen.Show), [typeof(IHealthController), typeof(InventoryController), typeof(AbstractQuestControllerClass), typeof(AbstractAchievementControllerClass), typeof(GClass3695), typeof(CompoundItem), typeof(EInventoryTab), typeof(ISession), typeof(ItemContextAbstractClass), typeof(bool)]);
+        return AccessTools.Method(typeof(InventoryScreen), nameof(InventoryScreen.Show), [typeof(IHealthController), typeof(InventoryController), typeof(AbstractQuestControllerClass), typeof(AbstractAchievementControllerClass), typeof(AbstractPrestigeControllerClass), typeof(CompoundItem), typeof(EInventoryTab), typeof(ISession), typeof(ItemContextAbstractClass), typeof(bool)]);
     }
 
     [PatchPostfix]

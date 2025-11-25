@@ -70,7 +70,7 @@ namespace QuestsExtended.Patches
             {
                 if (AbstractCustomQuestController.ResetMainMenu)
                 {
-                    Plugin.Log.LogInfo($"Header text is {__instance.HeaderText}");
+                    //Plugin.Log.LogInfo($"Header text is {__instance.HeaderText}");
                     if (__instance.HeaderText.ToLower() == "ok")
                     OptionalConditionController.ResetMainMenuForQE();
                 }
@@ -174,7 +174,7 @@ namespace QuestsExtended.Patches
             {
                 CompletedSaveData.hasScrubbedAFS = true;
                 CompletedSaveData.LoadQuestsThatWereStarted();
-                OptionalConditionController.RemoveAFSOnGameLaunch(CompletedSaveData.QuestsStartedByQE);
+                if (CompletedSaveData.QuestsStartedByQE.Count > 0) OptionalConditionController.RemoveAFSOnGameLaunch(CompletedSaveData.QuestsStartedByQE);
             }
         }
     }
