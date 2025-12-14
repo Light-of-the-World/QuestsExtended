@@ -54,8 +54,8 @@ internal class KeyUsedOnDoorPatch : ModulePatch
     [PatchPostfix]
     private static void Postfix(ref KeyComponent key, ref Player player)
     {
-        Plugin.Log.LogInfo("Player used a key");
-        Plugin.Log.LogInfo($"Do either of these look correct: {key.Template.KeyId}, {key.Item.Id}");
+        //Plugin.Log.LogInfo("Player used a key");
+        //Plugin.Log.LogInfo($"Do either of these look correct: {key.Template.KeyId}, {key.Item.Id}");
         if (player.IsAI) return;
         StatCounterQuestController.PlayerUsedKeyToUnlockDoor(key.Template.KeyId);
     }
