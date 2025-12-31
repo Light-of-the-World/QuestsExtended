@@ -41,7 +41,13 @@ namespace QuestsExtended.Patches
             MenuUI menuUI = MenuUI.Instance;
             if (menuUI.GetComponent<QuestExtendedController>() != null)
             {
-                Plugin.Log.LogInfo("(QE) Controller already exists");
+                Plugin.Log.LogInfo("(QE) Controller already exists. Double checking for savedata");
+                if (OptionalConditionController.saveData != menuUI.GetComponent<CompletedSaveData>())
+                {
+                    Plugin.Log.LogInfo("SaveData missing or incorrect, creating now");
+                    OptionalConditionController.saveData = menuUI.GetOrAddComponent<CompletedSaveData>();
+                    if (!OptionalConditionController.saveData.hasDoneInit) OptionalConditionController.saveData.init();
+                }
             }
             QuestExtendedController controller = menuUI.GetOrAddComponent<QuestExtendedController>();
             if (controller.hasCompletedInitMM == false)
