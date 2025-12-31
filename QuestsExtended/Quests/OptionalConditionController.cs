@@ -503,7 +503,13 @@ namespace QuestsExtended.Quests
                 yield return new WaitForSeconds(1f);
                 MenuUI menuUI = MenuUI.Instance;
                 QuestExtendedController cont = menuUI.GetComponent<QuestExtendedController>();
-                if (cont != null) saveData = menuUI.GetComponent<CompletedSaveData>();
+                if (cont != null)
+                {
+                    saveData = menuUI.GetComponent<CompletedSaveData>();
+                    if (saveData == null) Plugin.Log.LogWarning("SaveData seems to have failed to load, reloading...");
+                    saveData = menuUI.GetOrAddComponent<CompletedSaveData>();
+                    saveData.init();
+                }
             }
             if (CompletedSaveData.CompletedMultipleChoice.Contains(questId)) yield break;
             Plugin.Log.LogInfo("All good! Continuing on");
