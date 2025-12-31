@@ -15,7 +15,7 @@ using static QuestsExtended.Patches.QEFromTraderScreensGroupPatch;
 
 namespace QuestsExtended;
 
-[BepInPlugin("com.dirtbikercjandlotw.QuestsExtended", "Quests Extended", "4.0.0")]
+[BepInPlugin("com.dirtbikercjandlotw.QuestsExtended", "Quests Extended", "4.0.1")]
 public class Plugin : BaseUnityPlugin
 {
     internal const int TarkovVersion = 40087;
