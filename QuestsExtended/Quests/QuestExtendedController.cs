@@ -38,6 +38,7 @@ internal class QuestExtendedController : MonoBehaviour
 
     public void InitForRaid()
     {
+        isInMainMenu = false;
         //_player = Singleton<GameWorld>.Instance.MainPlayer;
         foreach (var person in Singleton<GameWorld>.Instance.AllAlivePlayersList)
         {
