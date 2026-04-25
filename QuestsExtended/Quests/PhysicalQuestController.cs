@@ -66,10 +66,20 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         foreach (var person in Singleton<GameWorld>.Instance.AllAlivePlayersList)
         {
             if (person.IsAI) continue;
-            _physical = person.Physical;
-            _pedometer = person.Pedometer;
-            _movementContext = person.MovementContext;
-            break;
+            if (person.Side == EPlayerSide.Savage)
+            {
+                Plugin.Log.LogInfo("No need to attatch QE to a scav raid, aborting.");
+                _player = null;
+                return;
+            }
+            if (person.Profile.ProfileId == ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.ProfileId)
+            {
+                _physical = person.Physical;
+                _pedometer = person.Pedometer;
+                _movementContext = person.MovementContext;
+                Plugin.Log.LogInfo($"DEBUG: We have just attatched a PhysicalHealthController to {person.Profile.Nickname}");
+                break;
+            }
         }
         /*
         _physical = Singleton<GameWorld>.Instance.MainPlayer.Physical;

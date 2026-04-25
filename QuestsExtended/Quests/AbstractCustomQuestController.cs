@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
-using Comfort.Common;
+﻿using Comfort.Common;
 using EFT;
 using QuestsExtended.Models;
+using SPT.Reflection.Utils;
+using SPTarkov.Server.Core.Models.Enums;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace QuestsExtended.Quests;
@@ -23,8 +25,16 @@ internal abstract class AbstractCustomQuestController
             foreach (var person in Singleton<GameWorld>.Instance.AllAlivePlayersList)
             {
                 if (person.IsAI) continue;
-                _player = person;
-                break;
+                if (person.Side == EPlayerSide.Savage)
+                {
+                    Plugin.Log.LogInfo("No need to attatch QE to a scav raid, aborting.");
+                    _player = null;
+                }
+                if (person.Profile.ProfileId == ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.ProfileId)
+                {
+                    _player = person;
+                    break;
+                }
                 //We made a change here, watch for breaks.
             }
             //_player = Singleton<GameWorld>.Instance.MainPlayer;

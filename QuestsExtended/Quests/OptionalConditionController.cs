@@ -100,7 +100,7 @@ namespace QuestsExtended.Quests
                     {
                         Plugin.Log.LogInfo("Why is saveData still null?");
                         saveData = menuUI.GetOrAddComponent<CompletedSaveData>();
-                        saveData.init();
+                        saveData.init(false);
                     }
                 }
             }
@@ -508,7 +508,7 @@ namespace QuestsExtended.Quests
                     saveData = menuUI.GetComponent<CompletedSaveData>();
                     if (saveData == null) Plugin.Log.LogWarning("SaveData seems to have failed to load, reloading...");
                     saveData = menuUI.GetOrAddComponent<CompletedSaveData>();
-                    saveData.init();
+                    saveData.init(false);
                 }
             }
             if (CompletedSaveData.CompletedMultipleChoice.Contains(questId)) yield break;

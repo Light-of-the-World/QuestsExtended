@@ -46,7 +46,7 @@ namespace QuestsExtended.Patches
                 {
                     Plugin.Log.LogInfo("SaveData missing or incorrect, creating now");
                     OptionalConditionController.saveData = menuUI.GetOrAddComponent<CompletedSaveData>();
-                    if (!OptionalConditionController.saveData.hasDoneInit) OptionalConditionController.saveData.init();
+                    if (!OptionalConditionController.saveData.hasDoneInit) OptionalConditionController.saveData.init(false);
                 }
             }
             QuestExtendedController controller = menuUI.GetOrAddComponent<QuestExtendedController>();
@@ -58,7 +58,7 @@ namespace QuestsExtended.Patches
                 //Plugin.Log.LogInfo("Running InitForMainMenu. Remove this logger before publishing.");
                 controller.InitFromMainMenu(sendingController);
                 CompletedSaveData completedSaveData = menuUI.GetOrAddComponent<CompletedSaveData>();
-                completedSaveData.init();
+                completedSaveData.init(false);
                 OptionalConditionController.saveData = completedSaveData;
                 Plugin.Log.LogInfo($"(QE) Quest Controller created by TradingScreen.");
             }

@@ -32,10 +32,20 @@ internal class OnGameStartedPatch : ModulePatch
         if (__instance is HideoutGameWorld) return;
         //if (AbstractCustomQuestController.isRaidOver == false) return;
         Plugin.Log.LogInfo("[QE] Raid starting");
+        foreach (var person in Singleton<GameWorld>.Instance.AllAlivePlayersList)
+        {
+            if (person.IsAI) continue;
+            if (person.Side == EPlayerSide.Savage)
+            {
+                Plugin.Log.LogInfo("No need to attatch QE to a scav raid, aborting.");
+                return;
+            }
+            //We made a change here, watch for breaks.
+        }
         QuestExtendedController controller = __instance.GetOrAddComponent<QuestExtendedController>();
         controller.InitForRaid();
         CompletedSaveData saveDataClass = __instance.GetOrAddComponent<CompletedSaveData>();
-        saveDataClass.init();
+        saveDataClass.init(true);
         PhysicalQuestController.LastPose = "Default";
         AbstractCustomQuestController.isRaidOver = false;
         DumpTriggerZones();

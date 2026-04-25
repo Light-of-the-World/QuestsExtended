@@ -43,8 +43,14 @@ internal class QuestExtendedController : MonoBehaviour
         foreach (var person in Singleton<GameWorld>.Instance.AllAlivePlayersList)
         {
             if (person.IsAI) continue;
-            _player = person;
-            break;
+            if (person.Profile.ProfileId == ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.ProfileId)
+                if (person.Side == EPlayerSide.Savage)
+                {
+                    Plugin.Log.LogInfo("No need to attatch QE to a scav raid, aborting.");
+                    _player = null;
+                    return;
+                }
+            { _player = person; break; }
             //We made a change here, watch for breaks.
         }
         _questAbstractController = _player?.AbstractQuestControllerClass;
