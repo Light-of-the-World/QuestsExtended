@@ -1,4 +1,6 @@
-﻿using EFT.Interactive;
+﻿using Comfort.Common;
+using EFT;
+using EFT.Interactive;
 using HarmonyLib;
 using QuestsExtended.Quests;
 using SPT.Reflection.Patching;
@@ -22,7 +24,17 @@ namespace QuestsExtended.Patches
         {
             //Plugin.Log.LogInfo($"[SwitchPatch] Switch.method_7 called, logging some relavent information: state to string: {state.ToString()}. Switch instance's TypeKey: {__instance.TypeKey}.");
             if (__instance.Lamps != null) return;
-            StatCounterQuestController.PowerSwitchInteractedWith();
+            QuestExtendedController _questController = null;
+            foreach (QuestExtendedController QEC in Singleton<GameWorld>.Instance.gameObject.GetComponents<QuestExtendedController>())
+            {
+                if (QEC.LocalPlayerID == Plugin.PlayerProfileID)
+                {
+                    _questController = QEC;
+                    break;
+                }
+            }
+            if (_questController == null) { Plugin.Log.LogError("QEC null, aborting (Patch: SwitchPatch)"); return; }
+            _questController._statCounterController.PowerSwitchInteractedWith();
         }
     }
 }

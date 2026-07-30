@@ -10,6 +10,7 @@ using QuestsExtended.Patches;
 using QuestsExtended.Quests;
 using QuestsExtended.SaveLoadRelatedClasses;
 using QuestsExtended.Utils;
+using SPT.Reflection.Utils;
 using UnityEngine;
 using static QuestsExtended.Patches.QEFromTraderScreensGroupPatch;
 
@@ -20,6 +21,9 @@ public class Plugin : BaseUnityPlugin
 {
     internal const int TarkovVersion = 40087;
     internal static ManualLogSource Log;
+    public static string PlayerProfileID;
+    public static bool PlayerInRaid = false;
+    public static bool TransitioningFromRaid = false;
 
     internal static Dictionary<string, CustomQuest> Quests { get; private set; } = [];
     
@@ -53,6 +57,9 @@ public class Plugin : BaseUnityPlugin
         new CheckForQECBeforeHideout().Enable();
         new WorkoutPatch().Enable();
         new CollectCraftedItemPatch().Enable();
+        //new CultistCircleActivatedPatch().Enable();
+        //new CultistCircleWatchOne().Enable();
+        //new CultistCircleWatchTwo().Enable();
         /*
         new QEBuyPatch().Enable();
         new QESellPatch().Enable();
@@ -66,7 +73,13 @@ public class Plugin : BaseUnityPlugin
         new KeyUsedOnDoorPatch().Enable();
         new KeyCardUsedOnDoorPatch().Enable();
         new PedometerPatch().Enable();
-        
+        new ResetAFSOnQuestAccept().Enable();
+        new HideLockedTradersPatch().Enable();
+        //new TaskHideoutButtonPatch().Enable();
+        new HideoutSelectedHandlerPatch().Enable();
+        new ProducedItemsButtonPatch().Enable();
+        new WipeQEDataOnNewCharacterPatch().Enable();
+        Plugin.Log.LogInfo("Quests Extended has loaded all patches :D");
     }
 
     private void Start()

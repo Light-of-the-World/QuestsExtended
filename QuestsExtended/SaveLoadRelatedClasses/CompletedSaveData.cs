@@ -1,4 +1,6 @@
-﻿using HarmonyLib;
+﻿using Comfort.Common;
+using EFT;
+using HarmonyLib;
 using Newtonsoft.Json;
 using QuestsExtended.Models;
 using QuestsExtended.Quests;
@@ -14,23 +16,35 @@ namespace QuestsExtended.SaveLoadRelatedClasses
 {
     public class CompletedSaveData : MonoBehaviour
     {
-        public static List<string> CompletedOptionals = new List<string>();
-        public static List<string> CompletedMultipleChoice = new List<string>();
-        public static List<string> QuestsStartedByQE = new List<string>();
+        public List<string> CompletedOptionals = new List<string>();
+        public List<string> CompletedMultipleChoice = new List<string>();
+        public List<string> QuestsStartedByQE = new List<string>();
         public static string DataDirectory;
         public static string CompletedOptionalsFilePath;
         public static string CompletedMultipleChoiceFilePath;
         public static string SpecialStartedQuestsFilePath;
         public static string QEQuestsFilePath;
-        private static bool RanCheckLastInit = false;
-
+        private bool RanCheckLastInit = false;
+        public string SaveProfileID;
+        public static bool justWiped = false;
         public bool hasDoneInit = false;
-        public static bool hasScrubbedAFS = false;
+        public bool hasScrubbedAFS = false;
 
         public void init(bool isRaid)
         {
             hasDoneInit = true;
+            SaveProfileID = ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.ProfileId;
             SetFileNames();
+            if (justWiped)
+            {
+                CompletedMultipleChoice.Clear();
+                QuestsStartedByQE.Clear();
+                CompletedOptionals.Clear();
+                SaveCompletedMultipleChoice();
+                SaveCompletedOptionals(); //This is so we ensure that the files are overwritten with new, fresh files.
+                justWiped = false;
+                Plugin.Log.LogInfo("Confirming that QE profile data was fully wiped");
+            }
             LoadCompletedOptionals();
             LoadCompletedMultipleChoice();
             if (!isRaid)
@@ -40,6 +54,7 @@ namespace QuestsExtended.SaveLoadRelatedClasses
                     RanCheckLastInit = false;
                     return;
                 }
+                FillQuestsStartedByQE();
                 CheckIfQuestNeedsToLoad();
             }
         }
@@ -49,10 +64,9 @@ namespace QuestsExtended.SaveLoadRelatedClasses
             string baseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string dataDirectory = Path.Combine(baseDirectory, "Data");
             DataDirectory = dataDirectory;
-            string profileID = ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.ProfileId;
-            CompletedOptionalsFilePath = Path.Combine(dataDirectory, profileID + "_CompletedOptionals.json");
-            CompletedMultipleChoiceFilePath = Path.Combine(dataDirectory, profileID + "_CompletedMultipleChoice.json");
-            SpecialStartedQuestsFilePath = Path.Combine(dataDirectory, profileID + "_SpecialStartedQuests.json");
+            CompletedOptionalsFilePath = Path.Combine(dataDirectory, SaveProfileID + "_CompletedOptionals.json");
+            CompletedMultipleChoiceFilePath = Path.Combine(dataDirectory, SaveProfileID + "_CompletedMultipleChoice.json");
+            SpecialStartedQuestsFilePath = Path.Combine(dataDirectory, SaveProfileID + "_SpecialStartedQuests.json");
             string questDirectory = Path.Combine(baseDirectory, "Quests");
             QEQuestsFilePath = questDirectory;
         }
@@ -133,7 +147,7 @@ namespace QuestsExtended.SaveLoadRelatedClasses
             Plugin.Log.LogInfo($"Saved {quests.Count} started quests to file.");
         }
 
-        public static void LoadQuestsThatWereStarted()
+        public void LoadQuestsThatWereStarted()
         {
             if (File.Exists(SpecialStartedQuestsFilePath))
             {
@@ -192,18 +206,74 @@ namespace QuestsExtended.SaveLoadRelatedClasses
                     {
                         foreach (string id in conditions.QuestsToStart)
                         {
+                            if (QuestsStartedByQE.Contains(id)) continue;
                             QuestIdsToStart.Add(id);
                         }
                     }
                 }
 
             }
-            if (QuestIdsToStart != null)
+            if (QuestIdsToStart.Count > 0)
             {
-                OptionalConditionController.SendQuestIdsForEditing<List<string>>(QuestIdsToStart);
+                Plugin.Log.LogInfo("We have a quest to start, running that now...");
+                QuestExtendedController _questController = null;
+                foreach (QuestExtendedController QEC in Singleton<GameWorld>.Instance.gameObject.GetComponents<QuestExtendedController>())
+                {
+                    if (QEC.LocalPlayerID== Plugin.PlayerProfileID)
+                    {
+                        _questController = QEC;
+                        break;
+                    }
+                }
+                if (_questController == null) { Plugin.Log.LogError("QEC null, aborting (Method: CheckIfQuestsNeedToLoad)"); return; }
+                _questController._optionalController.SendQuestIdsForEditing<List<string>>(QuestIdsToStart);
                 Plugin.Log.LogInfo($"QE Sending {QuestIdsToStart.Count} quests to have their AFS scrubbed.");
             }
+            else Plugin.Log.LogInfo($"Check complete, all quests should be loaded.");
             RanCheckLastInit = true;
+        }
+        public void FillQuestsStartedByQE()
+        {
+            List<string> localQuestIDs = new List<string>();
+            foreach (var quest in ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.QuestsData)
+            {
+                if (quest.Status != EFT.Quests.EQuestStatus.AvailableForStart)
+                {
+                    localQuestIDs.Add(quest.Id);
+                }
+            }
+            foreach (CustomQuest customQuest in Plugin.Quests.Values)
+            {
+                foreach (var condition  in customQuest.Conditions)
+                {
+                    if (condition.QuestsToStart != null)
+                    {
+                        foreach (string QEID in condition.QuestsToStart)
+                        {
+                            if (localQuestIDs.Contains(QEID))
+                            {
+                                QuestsStartedByQE.Add(QEID);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public static void WipeQEProfileData()
+        {
+            //Plugin.Log.LogInfo("Silent error?"); There was one
+            //Plugin.Log.LogInfo("0");
+            string baseDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            //Plugin.Log.LogInfo("1");
+            string dataDirectory = Path.Combine(baseDirectory, "Data");
+            string profileID = ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.ProfileId;
+            //Plugin.Log.LogInfo("2");
+            File.Delete(Path.Combine(dataDirectory, profileID + "_CompletedOptionals.json"));
+            File.Delete(Path.Combine(dataDirectory, profileID + "_CompletedMultipleChoice.json"));
+            File.Delete(Path.Combine(dataDirectory, profileID + "_SpecialStartedQuests.json"));
+            justWiped = true;
+            Plugin.Log.LogWarning("Quests Extended profile data has been wiped. Hopefully this was meant to happen!");
         }
     }
 }

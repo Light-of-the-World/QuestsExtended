@@ -2,9 +2,11 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using SPTarkov.DI.Annotations;
 using SPTarkov.Server.Core.DI;
+using SPTarkov.Server.Core.Extensions;
 using SPTarkov.Server.Core.Helpers;
 using SPTarkov.Server.Core.Models.Common;
 using SPTarkov.Server.Core.Models.Eft.Common;
+using SPTarkov.Server.Core.Models.Eft.Common.Tables;
 using SPTarkov.Server.Core.Models.Spt.Bots;
 using SPTarkov.Server.Core.Models.Utils;
 using SPTarkov.Server.Core.Services;
@@ -66,6 +68,7 @@ public class AFSScrubber : StaticRouter
     private static string? _modPath;
     private static string? _savesPath;
     private static ISptLogger<AFSScrubber>? _logger;
+    private static Dictionary<int, string> AFSIDs = new Dictionary<int, string>();
 
     public static List<string>? RecievedIds = null;
     public AFSScrubber(
@@ -83,7 +86,7 @@ public class AFSScrubber : StaticRouter
         _httpResponseUtil = httpResponseUtil;
         _databaseService = databaseService;
         _modPath = modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly()); ;
-        _savesPath = Path.Join(_modPath, "Data");
+        _savesPath = System.IO.Path.Join(_modPath, "Data");
         _logger = logger;
     }
     private static List<RouteAction> GetCustomRoutes()
@@ -97,7 +100,14 @@ public class AFSScrubber : StaticRouter
                     sessionID,
                     output
                 ) => await AdjustAFSInQuests(data)
-            )
+            ),
+            new RouteAction<AFSData>("/QE/QERestoreAFS",
+            async (
+                    url,
+                    data,
+                    sessionID,
+                    output
+                ) => await RestoreAFSInQuests(data))
         ];
     }
     public static ValueTask<string> AdjustAFSInQuests(AFSData data)
@@ -111,11 +121,54 @@ public class AFSScrubber : StaticRouter
             if (quests[id] == null) _logger.Info("0");
             if (quests[id].Conditions == null) _logger.Info("1");
             if (quests[id].Conditions.AvailableForStart == null) _logger.Info("2");
+            AFSIDs.Add(AFSIDs.Count + 1, quests[id].Conditions.AvailableForStart[0].Id);
             quests[id].Conditions.AvailableForStart.Clear();
             if (quests[id].QuestName != null) _logger.Info($"Removed the AFS for the quest {quests[id].QuestName}");
             else _logger.Info($"Removed the AFS for the quest {quests[id].Id}");
         }
         return new ValueTask<string>(_httpResponseUtil.NullResponse());
+    }
+    public static ValueTask<string> RestoreAFSInQuests(AFSData data)
+    {
+        var quests = _databaseService.GetQuests();
+        _logger.Info("Attempting to restore the AFS for quests some quests...");
+        foreach (var id in data.AfsQuestIds)
+        {
+            //_logger.Info("Log0");
+            quests[id].Conditions.AvailableForStart.Add(GenerateCondition());
+            _logger.Info($"Restored the AFS for the quest {quests[id].Id}");
+        }
+        return new ValueTask<string>(_httpResponseUtil.NullResponse());
+    }
+    public static QuestCondition GenerateCondition()
+    {
+        //_logger.Info("Log1");
+        QuestCondition newAFSCondition = new QuestCondition()
+        {
+            CompareMethod = ">=",
+            ConditionType = "Level",
+            DynamicLocale = false,
+            Id = GetAFSID(),
+            Value = 99,
+        };
+        return newAFSCondition;
+    }
+    public static string GetAFSID()
+    {
+        //_logger.Info("Log2");
+        string id = "";
+        if (AFSIDs.Count == 0)
+        {
+            _logger.Error("AFSIDs is null, that's no good. Using a backup.");
+            id = "6a28166e155422a7c133b115";
+        }
+        else
+        {
+            //_logger.Info("Log3");
+            id = AFSIDs[AFSIDs.Count];
+            AFSIDs.Remove(AFSIDs.Count);
+        }
+            return id;
     }
 }
 public record AFSData : IRequestData

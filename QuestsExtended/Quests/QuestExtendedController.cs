@@ -18,41 +18,51 @@ internal class QuestExtendedController : MonoBehaviour
 {
     private static string UnderlyingQuestControllerClassName;
     public Player _player;
+    public string LocalPlayerID;
     public AbstractQuestControllerClass _questAbstractController;
     private Dictionary<string, CustomQuest> CustomQuests => Plugin.Quests;
 
     private readonly List<string> _questsWithCustomConditions = [];
 
-    public static List<string> conditionTypes = new List<string>();
+    public List<string> conditionTypes = new List<string>();
 
-    private static MedicalQuestController _medController;
-    private static PhysicalQuestController _physicalController;
-    private static StatCounterQuestController _statCounterController;
-    private static OptionalConditionController _optionalController;
-    private static HideoutQuestController _hideoutQuestController;
-    private static TradingQuestController _tradingQuestController;
-    public static bool isRaidOver = false;
-    public static bool isInMainMenu = false;
+    public MedicalQuestController _medController;
+    public PhysicalQuestController _physicalController;
+    public StatCounterQuestController _statCounterController;
+    public OptionalConditionController _optionalController;
+    public HideoutQuestController _hideoutQuestController;
+    public TradingQuestController _tradingQuestController;
+    public bool isRaidOver = false;
+    public bool isInMainMenu = false;
     public bool hasCompletedInitMM = false;
     public bool hasCompletedHideoutInit = false;
-
+    //public string PlayerProfile = ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.ProfileId;
+    void Awake()
+    {
+        Plugin.PlayerProfileID = ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.ProfileId;
+    }
     public void InitForRaid()
     {
         isInMainMenu = false;
+        LocalPlayerID = ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.ProfileId;
+        if (LocalPlayerID == null) Plugin.Log.LogError("Failed to get LocalPlayerID! Expect errors...");
+        if (Plugin.PlayerProfileID == null) Plugin.PlayerProfileID = LocalPlayerID;
         //_player = Singleton<GameWorld>.Instance.MainPlayer;
         foreach (var person in Singleton<GameWorld>.Instance.AllAlivePlayersList)
         {
             if (person.IsAI) continue;
-            if (person.Profile.ProfileId == ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.ProfileId)
+            if (person.Profile.ProfileId == Plugin.PlayerProfileID)
                 if (person.Side == EPlayerSide.Savage)
                 {
-                    Plugin.Log.LogInfo("No need to attatch QE to a scav raid, aborting.");
+                    Plugin.Log.LogInfo("(QE) No need to attatch QE to a scav raid, aborting.");
                     _player = null;
+                    AbstractCustomQuestController.isScavRaid = true;
                     return;
                 }
             { _player = person; break; }
             //We made a change here, watch for breaks.
         }
+        AbstractCustomQuestController.isScavRaid = false;
         _questAbstractController = _player?.AbstractQuestControllerClass;
 
         hasCompletedInitMM = false;
@@ -61,7 +71,6 @@ internal class QuestExtendedController : MonoBehaviour
         _physicalController = new PhysicalQuestController(this);
         _statCounterController = new StatCounterQuestController(this);
         _optionalController = new OptionalConditionController(this);
-
         _statCounterController.Awake();
         _optionalController.Awake();
 
@@ -93,6 +102,7 @@ internal class QuestExtendedController : MonoBehaviour
         {
             _questsWithCustomConditions.Add(condition.Key);
         }
+        Plugin.Log.LogInfo("InitForRaid ran successfully. Happy playing!");
     }
 
     public void InitFromMainMenu(AbstractQuestControllerClass questControllerClass)
@@ -104,6 +114,7 @@ internal class QuestExtendedController : MonoBehaviour
         _hideoutQuestController.Init();
         _tradingQuestController = new TradingQuestController(this);
         _tradingQuestController.Init();
+        LocalPlayerID = ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.ProfileId;
         isInMainMenu = true;
 
         if (UnderlyingQuestControllerClassName == null)
@@ -336,7 +347,7 @@ internal class QuestExtendedController : MonoBehaviour
             if (quest.QuestStatus == EQuestStatus.Started && _questsWithCustomConditions.Contains(quest.Id))
             {
                 activeQuests.Add(quest);
-                OptionalConditionController.AddQuestIDToActiveList(quest.Id);
+                _optionalController.AddQuestIDToActiveList(quest.Id);
             }
         }
 

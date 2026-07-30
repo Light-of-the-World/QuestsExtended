@@ -46,7 +46,6 @@ public class VersionChecker : Attribute
                     }
                 ));
             }
-
             return false;
         }
 

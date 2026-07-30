@@ -33,13 +33,13 @@ namespace QuestsExtended.Quests
         {
 
         }
-        public static List<string> _activeQuestIds = new List<string>();
-        private static bool alreadyLoaded = false;
+        public List<string> _activeQuestIds = new List<string>();
+        public bool alreadyLoaded = false;
         public static GClass2098 questClass = null;
         public static float questCheckCooldown = 5f;
-        public static List<ConditionPair> conditions = new List<ConditionPair>();
+        public List<ConditionPair> conditions = new List<ConditionPair>();
         public static MainMenuControllerClass mainMenuControllerClass = null;
-        public static CompletedSaveData saveData;
+        public CompletedSaveData saveData;
         public void Awake()
         {
             conditions.Clear();
@@ -59,7 +59,7 @@ namespace QuestsExtended.Quests
             }
         }
 
-        public static void AddQuestIDToActiveList(string id)
+        public void AddQuestIDToActiveList(string id)
         {
             if (alreadyLoaded) return;
             alreadyLoaded = true;
@@ -67,7 +67,7 @@ namespace QuestsExtended.Quests
           //  Plugin.Log.LogInfo($"Quest id {id} made it to QuestStarter");
         }
 
-        public static void HandleQuestStartingConditionCompletion(Condition condition)
+        public void HandleQuestStartingConditionCompletion(Condition condition)
         {
             bool foundCondition = false;
             ConditionPair correctCond = null;
@@ -90,7 +90,7 @@ namespace QuestsExtended.Quests
                     {
                         Plugin.Log.LogError("There's no GameWorld Instance either. We need to find something else.");
                     }
-                    saveData = Singleton<GameWorld>.Instance.GetOrAddComponent<CompletedSaveData>();
+                    saveData = Singleton<GameWorld>.Instance.gameObject.GetOrAddComponent<CompletedSaveData>();
                 }
                 else
                 {
@@ -104,12 +104,37 @@ namespace QuestsExtended.Quests
                     }
                 }
             }
+            QuestExtendedController _questController = null;
+            if (Plugin.PlayerInRaid)
+            {
+                foreach (QuestExtendedController QEC in Singleton<GameWorld>.Instance.gameObject.GetComponents<QuestExtendedController>())
+                {
+                    if (QEC.LocalPlayerID == Plugin.PlayerProfileID)
+                    {
+                        _questController = QEC;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                MenuUI menuUI = MenuUI.Instance;
+                foreach (QuestExtendedController QEC in menuUI.gameObject.GetComponents<QuestExtendedController>())
+                {
+                    if (QEC.LocalPlayerID == Plugin.PlayerProfileID)
+                    {
+                        _questController = QEC;
+                        break;
+                    }
+                }
+            }
+
             if (!foundCondition)
             {
-                Plugin.Log.LogWarning($"Condition not found, Checking some things. Condition id we're looking for is {condition.id}.");
+                //Plugin.Log.LogWarning($"Condition not found, Checking some things. Condition id we're looking for is {condition.id}.");
                 if (_questController == null)
                 {
-                    Plugin.Log.LogInfo($"_questController is null. Likely in the main menu trying to start a new quest. Conditionid we got is {condition.id}. Just to make sure things are loaded, we currently have {Plugin.Quests.Count} quests loaded. Overriding...");
+                    //Plugin.Log.LogInfo($"_questController is null. Likely in the main menu trying to start a new quest. Conditionid we got is {condition.id}. Just to make sure things are loaded, we currently have {Plugin.Quests.Count} quests loaded. Overriding...");
                     foreach (var quest in Plugin.Quests)
                     {
                         if (quest.Value.IsMultipleChoiceStarter)
@@ -118,8 +143,8 @@ namespace QuestsExtended.Quests
                             {
                                 if (overrideCond.ConditionId == condition.id)
                                 {
-                                    if (CompletedSaveData.CompletedMultipleChoice.Contains(quest.Value.QuestId)) { Plugin.Log.LogInfo("Already did this, returning. Logger id: 1"); return; }
-                                    CompletedSaveData.CompletedMultipleChoice.Add(quest.Value.QuestId);
+                                    if (saveData.CompletedMultipleChoice.Contains(quest.Value.QuestId)) { Plugin.Log.LogInfo("Already did this, returning. Logger id: 1"); return; }
+                                    saveData.CompletedMultipleChoice.Add(quest.Value.QuestId);
                                     Plugin.Log.LogInfo("Got the condition, updating quests.");
                                     if (overrideCond.QuestsToStart == null || overrideCond.QuestsToStart.Count == 0)
                                     {
@@ -162,8 +187,8 @@ namespace QuestsExtended.Quests
                                     //Plugin.Log.LogInfo(overrideCond.ConditionId);
                                     if (overrideCond.ConditionId == condition.id)
                                     {
-                                        if (CompletedSaveData.CompletedMultipleChoice.Contains(quest.Value.QuestId)) { Plugin.Log.LogInfo("Already did this, returning. Logger id: 2"); return; }
-                                        CompletedSaveData.CompletedMultipleChoice.Add(quest.Value.QuestId);
+                                        if (saveData.CompletedMultipleChoice.Contains(quest.Value.QuestId)) { Plugin.Log.LogInfo("Already did this, returning. Logger id: 2"); return; }
+                                        saveData.CompletedMultipleChoice.Add(quest.Value.QuestId);
                                         Plugin.Log.LogInfo("Got the condition, updating quests.");
                                         if (overrideCond.QuestsToStart == null || overrideCond.QuestsToStart.Count == 0)
                                         {
@@ -173,7 +198,7 @@ namespace QuestsExtended.Quests
                                         }
                                         SendQuestIdsForEditing<List<RawQuestClass>>(overrideCond.QuestsToStart);
                                         saveData.SaveCompletedMultipleChoice();
-                                        if (Singleton<GameWorld>.Instance != null) return;  
+                                        if (Singleton<GameWorld>.Instance != null) return;
                                         Plugin.Log.LogInfo("Resetting main menu for QE.");
                                         ShowResetMessage = true;
                                         AdvisePlayerOfReset();
@@ -264,19 +289,19 @@ namespace QuestsExtended.Quests
                 }
                 return;
             }
-            if (CompletedSaveData.CompletedOptionals.Contains(condition.id))
+            if (saveData.CompletedOptionals.Contains(condition.id))
             {
                 //Plugin.Log.LogInfo("Condition was already within CompletedOptionals list");
                 return;
             }
             if (foundCondition)
             {
-                if (CompletedSaveData.CompletedOptionals.Contains(condition.id))
+                if (saveData.CompletedOptionals.Contains(condition.id))
                 {
                     Plugin.Log.LogInfo("Tried to increment a condition that has already been completed. Logger id: 3");
                     return;
                 }
-                CompletedSaveData.CompletedOptionals.Add(condition.id);
+                saveData.CompletedOptionals.Add(condition.id);
                 foreach (var quest in Plugin.Quests)
                 {
                     if (quest.Value.IsMultipleChoiceStarter)
@@ -288,7 +313,7 @@ namespace QuestsExtended.Quests
                                 if (overrideCond.QuestsToStart != null && !overrideCond.IsFail)
                                 {
                                     Plugin.Log.LogInfo("Probably got a condition that's meant to start multiple quests, and it's acting weird because a custom condition bumped it. Running it throughOCC.");
-                                    OptionalConditionController.DirectHandleQuestStartingConditionCompletion(quest.Value.QuestId, overrideCond);
+                                    DirectHandleQuestStartingConditionCompletion(quest.Value.QuestId, overrideCond);
                                 }
                             }
                         }
@@ -298,7 +323,7 @@ namespace QuestsExtended.Quests
                 saveData.SaveCompletedOptionals();
                 IncrementCondition(correctCond, 1);
             }
-            Plugin.Log.LogInfo("8");
+            //Plugin.Log.LogInfo("8");
             if (!foundCondition)
             {
                 var newConditions = conditions = _questController.GetActiveConditions(EQuestConditionGen.EmptyWithQuestStarter);
@@ -344,8 +369,8 @@ namespace QuestsExtended.Quests
 
                 if (completedCondition.QuestsToStart != null && completedCondition.QuestsToStart.Count > 0)
                 {
-                    if (CompletedSaveData.CompletedMultipleChoice.Contains(correctCond.Quest.Id)) { Plugin.Log.LogInfo("Tried to increment a condition that already exists in CompletedMultipleChoice. Returning. Logger id: 5"); return; }
-                    CompletedSaveData.CompletedMultipleChoice.Add(correctCond.Quest.Id);
+                    if (saveData.CompletedMultipleChoice.Contains(correctCond.Quest.Id)) { Plugin.Log.LogInfo("Tried to increment a condition that already exists in CompletedMultipleChoice. Returning. Logger id: 5"); return; }
+                    saveData.CompletedMultipleChoice.Add(correctCond.Quest.Id);
                     Plugin.Log.LogInfo($"We are adding the id {correctCond.Quest.Id} to CompletedMultipleChoice and attempting to load the correct quests");
                     //Plugin.Log.LogInfo($"StartMultiChoiceQuest: Sending {completedCondition.QuestsToStart.Count} quest(s) to the server.");
                     //Plugin.Log.LogWarning("Running a method to try and set the quest to completed, expect crashes"); //NOT CRASHING ANYMORE CAUSE IT WORKS!
@@ -360,7 +385,7 @@ namespace QuestsExtended.Quests
             }
             else
             {
-                Plugin.Log.LogInfo("9");
+                //Plugin.Log.LogInfo("9");
                 if (!Plugin.Quests.TryGetValue(correctCond.Quest.Id, out CustomQuest customQuest))
                 {
                     Plugin.Log.LogWarning($"StartMultiChoiceQuest: Could not find CustomQuest data for quest ID {correctCond.Quest.Id}");
@@ -379,7 +404,7 @@ namespace QuestsExtended.Quests
                         break;
                     }
                 }
-                Plugin.Log.LogInfo("10");
+                //Plugin.Log.LogInfo("10");
                 if (!conditionFound || !customQuest.IsMultipleChoiceStarter)
                 {
                     return;
@@ -387,8 +412,8 @@ namespace QuestsExtended.Quests
 
                 if (completedCondition.QuestsToStart != null && completedCondition.QuestsToStart.Count > 0)
                 {
-                    if (CompletedSaveData.CompletedMultipleChoice.Contains(correctCond.Quest.Id)) return;
-                    CompletedSaveData.CompletedMultipleChoice.Add(correctCond.Quest.Id);
+                    if (saveData.CompletedMultipleChoice.Contains(correctCond.Quest.Id)) return;
+                    saveData.CompletedMultipleChoice.Add(correctCond.Quest.Id);
                     //Plugin.Log.LogInfo($"We are adding the id {correctCond.Quest.Id} to CompletedMultipleChoice and attempting to load the correct quests");
                     //Plugin.Log.LogInfo($"StartMultiChoiceQuest: Sending {completedCondition.QuestsToStart.Count} quest(s) to the server.");
                     foreach (string questToStart in completedCondition.QuestsToStart)
@@ -412,23 +437,23 @@ namespace QuestsExtended.Quests
             }
         }
 
-        public static void DirectHandleQuestStartingConditionCompletion(string questId, CustomCondition cond)
+        public void DirectHandleQuestStartingConditionCompletion(string questId, CustomCondition cond)
         {
-            Plugin.Log.LogInfo("If you are here it's because you are direct calling a quest. Oh joy! Let's see how this goes. Let's make sure we're not running a double...");
+            //Plugin.Log.LogInfo("If you are here it's because you are direct calling a quest. Oh joy! Let's see how this goes. Let's make sure we're not running a double...");
             if (saveData == null)
             {
                 Plugin.Log.LogInfo("QE hasn't loaded yet, delaying the call.");
                 StaticManager.BeginCoroutine(DelayedHandleQuestStartingConditionCompletion(questId, cond));
                 return;
             }
-            if (CompletedSaveData.CompletedMultipleChoice.Contains(questId)) { Plugin.Log.LogInfo("Tried to increment a condition that already exists in CompletedMultipleChoice. Returning. Logger id: 6"); return; }
-            Plugin.Log.LogInfo("All good! Continuing on");
+            if (saveData.CompletedMultipleChoice.Contains(questId)) { Plugin.Log.LogInfo("Tried to increment a condition that already exists in CompletedMultipleChoice. Returning. Logger id: 6"); return; }
+            //Plugin.Log.LogInfo("All good! Continuing on");
             if (cond.QuestsToStart == null || cond.QuestsToStart.Count == 0)
             {
                 Plugin.Log.LogWarning($"Condition {cond.ConditionId} was direct called, but does not have any ids in QuestsToStart. Please locate this condition!");
                 return;
             }
-            CompletedSaveData.CompletedMultipleChoice.Add(questId);
+            saveData.CompletedMultipleChoice.Add(questId);
             SendQuestIdsForEditing<List<RawQuestClass>>(cond.QuestsToStart);
             saveData.SaveCompletedMultipleChoice();
             if (Singleton<GameWorld>.Instance != null) return;
@@ -495,25 +520,39 @@ namespace QuestsExtended.Quests
                 return default(T);
             }
         }
-        private static IEnumerator DelayedHandleQuestStartingConditionCompletion (string questId, CustomCondition cond)
+        private IEnumerator DelayedHandleQuestStartingConditionCompletion (string questId, CustomCondition cond)
         {
             while (saveData == null)
             {
                 Plugin.Log.LogInfo("Not loaded yet, waiting...");
                 yield return new WaitForSeconds(1f);
                 MenuUI menuUI = MenuUI.Instance;
-                QuestExtendedController cont = menuUI.GetComponent<QuestExtendedController>();
+                QuestExtendedController cont = null;
+                foreach (QuestExtendedController QEC in menuUI.gameObject.GetComponents<QuestExtendedController>())
+                {
+                    if (QEC.LocalPlayerID == Plugin.PlayerProfileID)
+                    {
+                        _questController = QEC;
+                        break;
+                    }
+                }
                 if (cont != null)
                 {
-                    saveData = menuUI.GetComponent<CompletedSaveData>();
+                    foreach (CompletedSaveData dats in menuUI.gameObject.GetComponents<CompletedSaveData>())
+                    {
+                        if (dats.SaveProfileID == Plugin.PlayerProfileID)
+                        {
+                            saveData = dats; break;
+                        }
+                    }
                     if (saveData == null) Plugin.Log.LogWarning("SaveData seems to have failed to load, reloading...");
                     saveData = menuUI.GetOrAddComponent<CompletedSaveData>();
                     saveData.init(false);
                 }
             }
-            if (CompletedSaveData.CompletedMultipleChoice.Contains(questId)) yield break;
+            if (saveData.CompletedMultipleChoice.Contains(questId)) yield break;
             Plugin.Log.LogInfo("All good! Continuing on");
-            CompletedSaveData.CompletedMultipleChoice.Add(questId);
+            saveData.CompletedMultipleChoice.Add(questId);
             SendQuestIdsForEditing<List<RawQuestClass>>(cond.QuestsToStart);
             saveData.SaveCompletedMultipleChoice();
             if (Singleton<GameWorld>.Instance != null) yield break;
@@ -525,7 +564,7 @@ namespace QuestsExtended.Quests
 
         }
 
-        public static void RemoveAFSOnGameLaunch (List<string> questIds)
+        public void RemoveAFSOnGameLaunch (List<string> questIds)
         {
             if (questIds == null || questIds.Count == 0)
             {
@@ -562,6 +601,42 @@ namespace QuestsExtended.Quests
             AdvisePlayerOfSpecialReset();
         }
 
+        public void RestoreAFSForQuests()
+        {
+            if (QuestsToResetAFS.Count == 0)
+            {
+                Plugin.Log.LogWarning("Bad method call, check what calls RestoreAFSForQuests");
+                return;
+            }
+            SendQuestIDsForAFSRestore(QuestsToResetAFS);
+        }
+
+        public void SendQuestIDsForAFSRestore(List<string> questIds)
+        {
+            try
+            {
+                if (questIds.Count != 0) Plugin.Log.LogInfo($"We are restoring {questIds.Count} AFS conditions.");
+                else
+                {
+                    Plugin.Log.LogError("Tried sending 0 quest ids to the server. Please ensure you are sending at least one id before using this method.");
+                    return;
+                }
+                var data = new SendIdsForAFS()
+                {
+                    AfsQuestIds = questIds
+                };
+                RequestHandler.PostJson("/QE/QERestoreAFS", JsonConvert.SerializeObject(data));
+                //RequestHandler.PostJson("/QE/QEScrubAFS", JsonConvert.SerializeObject(new SendIdsForAFS() { afsQuestIds = questIds }, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+                //JsonConvert.DeserializeObject<ServerResponse<List<RawQuestClass>>>(templates, new JsonConverter[] { new GClass1866<ECompareMethod>(true), new GClass1643<GClass1642, Condition, string>() });
+                Plugin.Log.LogInfo("Successfully sent AFS data, adjusting");
+                QuestsToResetAFS.Clear();
+            }
+            catch (Exception ex)
+            {
+                Plugin.Log.LogError("Did not send the quest list properly: " + ex);
+            }
+        }
+
         private static void AdvisePlayerOfReset()
         {
             if (AbstractCustomQuestController.ShowResetMessage == true)
@@ -569,6 +644,7 @@ namespace QuestsExtended.Quests
                 Plugin.Log.LogInfo("Trying to create a reset message");
                 AbstractCustomQuestController.ShowResetMessage = false;
                 AbstractCustomQuestController.ResetMainMenu = true;
+                AbstractCustomQuestController.hasResetWithoutQuestAccept = true;
                 ErrorScreen errorScreen = new ErrorScreen();
                 PreloaderUI preloaderUi = Singleton<PreloaderUI>.Instance;
                 string title = "Quests Extended Notice";
@@ -584,6 +660,7 @@ namespace QuestsExtended.Quests
                 Plugin.Log.LogInfo("Trying to create the initial load reset message");
                 AbstractCustomQuestController.ShowSpecialResetMessage = false;
                 AbstractCustomQuestController.ResetMainMenu = true;
+                AbstractCustomQuestController.hasResetWithoutQuestAccept = true;
                 ErrorScreen errorScreen = new ErrorScreen();
                 PreloaderUI preloaderUi = Singleton<PreloaderUI>.Instance;
                 string title = "Quests Extended Notice";
@@ -596,13 +673,12 @@ namespace QuestsExtended.Quests
         {
             AbstractCustomQuestController.ShowResetMessage = false;
             AbstractCustomQuestController.ResetMainMenu = false;
-            QuestExtendedController.isInMainMenu = true;
             mainMenuControllerClass.method_5();
             MenuUI menuUI = MenuUI.Instance;
             QuestExtendedController cont = menuUI.GetComponent<QuestExtendedController>();
             UnityEngine.Object.Destroy(cont);
         }
-        public static void SendQuestIdsForEditing<T>(List<string> questIds)
+        public void SendQuestIdsForEditing<T>(List<string> questIds)
         {
             try
             {
@@ -620,6 +696,8 @@ namespace QuestsExtended.Quests
                 //RequestHandler.PostJson("/QE/QEScrubAFS", JsonConvert.SerializeObject(new SendIdsForAFS() { afsQuestIds = questIds }, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
                 //JsonConvert.DeserializeObject<ServerResponse<List<RawQuestClass>>>(templates, new JsonConverter[] { new GClass1866<ECompareMethod>(true), new GClass1643<GClass1642, Condition, string>() });
                 saveData.LogQuestThatWasStarted(questIds);
+                Plugin.Log.LogInfo("Setting up the quest AFS to be restored upon quest acceptance.");
+                foreach (string id in questIds) AbstractCustomQuestController.QuestsToResetAFS.Add(id);
             }
             catch (Exception ex)
             {
@@ -631,7 +709,7 @@ namespace QuestsExtended.Quests
             [JsonProperty("templateIds")]
             public List<string> AfsQuestIds = new List<string>();
         }
-        public static void HandleVanillaConditionChanged(string conditionId, int currentValue)
+        public void HandleVanillaConditionChanged(string conditionId, int currentValue)
         {
             try
             {
