@@ -19,15 +19,15 @@ namespace QuestsExtended.Quests
 
         public void Init()
         {
-            Plugin.Log.LogInfo("Created a TradingQuestController. We are ready to add code here.");
+            Plugin.Log.LogInfo("Created a TradingQuestController.");
         }
 
-        public static void PurchaseMade(int amount, string currencyType, string traderId)
+        public void PurchaseMade(int amount, string currencyType, string traderId)
         {
             StaticManager.BeginCoroutine(PurchaseMadeDelayed(amount, currencyType, traderId));
         }
 
-        private static IEnumerator PurchaseMadeDelayed(int price, string currencyType, string traderId)
+        private IEnumerator PurchaseMadeDelayed(int price, string currencyType, string traderId)
         {
             yield return new WaitForSeconds(0.2f); // wait 0.2s
 
@@ -119,7 +119,7 @@ namespace QuestsExtended.Quests
 
         }
         
-        public static void SaleMade(int price, string currencyType, string traderId)
+        public void SaleMade(int price, string currencyType, string traderId)
         {
             //0 is rub, 1 is eur, 2 is dol
             //a dollar is 130 rub, a euro is 150 rub

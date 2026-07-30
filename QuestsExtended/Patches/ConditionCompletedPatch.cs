@@ -1,28 +1,29 @@
-﻿using EFT.Quests;
+﻿using Comfort.Common;
 using EFT;
+using EFT.Quests;
+using EFT.UI;
 using HarmonyLib;
+using Newtonsoft.Json;
+using QuestsExtended.Models;
 using QuestsExtended.Quests;
+using QuestsExtended.SaveLoadRelatedClasses;
+using SPT.Common.Http;
 using SPT.Reflection.Patching;
+using SPT.Reflection.Utils;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using EFT.UI;
-using System.Net.Http;
-using Newtonsoft.Json;
-using SPT.Common.Http;
-using System.Collections;
 using UnityEngine;
-using static LocationScene;
 using static BackendDummyClass;
-using System.Diagnostics;
 using static EFT.UI.InteractionButtonsContainer;
 using static LocalQuestControllerClass;
-using QuestsExtended.Models;
-using QuestsExtended.SaveLoadRelatedClasses;
-using Comfort.Common;
+using static LocationScene;
 
 namespace QuestsExtended.Patches
 {
@@ -41,8 +42,36 @@ namespace QuestsExtended.Patches
                 //Plugin.Log.LogInfo($"This is a child condition. The parent id is {__instance.Condition.ParentId}.");
                 if (__instance.CurrentValue >= __instance.Condition.value)
                 {
-                    //Plugin.Log.LogInfo("This child condition is completed... let's try a new HandleOptionalConditionCompletion.");
-                    OptionalConditionController.HandleQuestStartingConditionCompletion(__instance.Condition);
+                    QuestExtendedController _questController = null;
+                    if (Plugin.PlayerInRaid)
+                    {
+                        foreach (QuestExtendedController QEC in Singleton<GameWorld>.Instance.gameObject.GetComponents<QuestExtendedController>())
+                        {
+                            if (QEC.LocalPlayerID == Plugin.PlayerProfileID)
+                            {
+                                _questController = QEC;
+                                break;
+                            }
+                        }
+                        if (_questController == null) { Plugin.Log.LogError("QEC null, aborting (Patch: CustomConditionChecker. We are in raid.)"); return; }
+                        //Plugin.Log.LogInfo("This child condition is completed... let's try a new HandleOptionalConditionCompletion.");
+                        _questController._optionalController.HandleQuestStartingConditionCompletion(__instance.Condition);
+                    }
+                    else
+                    {
+                        MenuUI menuUI = MenuUI.Instance;
+                        foreach (QuestExtendedController QEC in menuUI.gameObject.GetComponents<QuestExtendedController>())
+                        {
+                            if (QEC.LocalPlayerID== Plugin.PlayerProfileID)
+                            {
+                                _questController = QEC;
+                                break;
+                            }
+                        }
+                        if (_questController == null) { Plugin.Log.LogError("QEC null, aborting (Patch: CustomConditionChecker. We are in the main menu.)"); return; }
+                        //Plugin.Log.LogInfo("This child condition is completed... let's try a new HandleOptionalConditionCompletion.");
+                        _questController._optionalController.HandleQuestStartingConditionCompletion(__instance.Condition);
+                    }
                 }
 
             }
@@ -69,14 +98,39 @@ namespace QuestsExtended.Patches
             if (counter.Conditional == null) return;
             if (counter.Conditional.Id == null) return;
             string questId = counter.Conditional.Id;
-            if (Plugin.BannedQuestIds.Contains(questId)) return;
             string counterId = counter.Id;
-            if (Plugin.BannedConditionIds.Contains(counterId)) return;
             //Plugin.Log.LogInfo($"(POSTFIX)Quest {questId} just changed {counterId}'s value by {valueToAdd}, making it {counter.Value}.");
             if (__state != counter.Value)
             {
-                Plugin.Log.LogWarning($"We got the vanilla condition that just changed: {counterId}. Send it to OCC for processing");
-                OptionalConditionController.HandleVanillaConditionChanged(counterId, counter.Value);
+                //Plugin.Log.LogWarning($"We got the vanilla condition that just changed: {counterId}. Send it to OCC for processing");
+                QuestExtendedController _questController = null;
+                if (Plugin.PlayerInRaid)
+                {
+                    foreach (QuestExtendedController QEC in Singleton<GameWorld>.Instance.gameObject.GetComponents<QuestExtendedController>())
+                    {
+                        if (QEC.LocalPlayerID == Plugin.PlayerProfileID)
+                        {
+                            _questController = QEC;
+                            break;
+                        }
+                    }
+                    if (_questController == null) { Plugin.Log.LogError("QEC null, aborting (Patch: VanillaConditionChecker. We are in raid.)"); return; }
+                    _questController._optionalController.HandleVanillaConditionChanged(counterId, counter.Value);
+                }
+                else
+                {
+                    MenuUI menuUI = MenuUI.Instance;
+                    foreach (QuestExtendedController QEC in menuUI.gameObject.GetComponents<QuestExtendedController>())
+                    {
+                        if (QEC.LocalPlayerID == Plugin.PlayerProfileID)
+                        {
+                            _questController = QEC;
+                            break;
+                        }
+                    }
+                    if (_questController == null) { Plugin.Log.LogError("QEC null, aborting (Patch: VanillaConditionChecker. We are in the main menu.)"); return; }
+                    _questController._optionalController.HandleVanillaConditionChanged(counterId, counter.Value);
+                }
             }
         }
     }
@@ -92,6 +146,48 @@ namespace QuestsExtended.Patches
         {
             //Plugin.Log.LogInfo($"CFSC ran on quest {__instance.Id}. The status in the method is {status}, while the __instance status shows as {__instance.QuestStatus}");
             //This seems to work. We can try using this,
+            CompletedSaveData CorrectPlayerSaveData = null;
+            if (Plugin.TransitioningFromRaid)
+            {
+                //Plugin.Log.LogInfo("Transitioning between raids, blocking invoke."); 
+                return;
+            }
+            if (Plugin.PlayerInRaid)
+            {
+                if (Singleton<GameWorld>.Instance == null) return;
+                if (Singleton<GameWorld>.Instance.gameObject.GetComponents<CompletedSaveData>().Length == 0)
+                {
+                    Plugin.Log.LogWarning("Stupid patch fired before anything loaded, cancelling.");
+                    return;
+                }
+                foreach (CompletedSaveData data in Singleton<GameWorld>.Instance.gameObject.GetComponents<CompletedSaveData>())
+                {
+                    if (data.SaveProfileID == Plugin.PlayerProfileID)
+                    {
+                        CorrectPlayerSaveData = data;
+                        break;
+                    }
+                    Plugin.Log.LogWarning("Could not retrieve save data (BSG, in raid)"); return;
+                }
+            }
+            else
+            {
+                if (MenuUI.Instance == null) return;
+                if (MenuUI.Instance.gameObject.GetComponents<CompletedSaveData>().Length == 0)
+                {
+                    //Plugin.Log.LogWarning("Stupid patch fired before anything loaded, cancelling.");
+                    return;
+                }
+                foreach (CompletedSaveData data in MenuUI.Instance.gameObject.GetComponents<CompletedSaveData>())
+                {
+                    if (data.SaveProfileID == Plugin.PlayerProfileID)
+                    {
+                        CorrectPlayerSaveData = data;
+                        break;
+                    }
+                    Plugin.Log.LogWarning("Could not retrieve save data (BSG, in main menu)"); return;
+                }
+            }
             if (status == EQuestStatus.AvailableForFinish && __instance.QuestStatus == status)
             {
                 //Plugin.Log.LogInfo("Did a quest just get completed?");
@@ -99,7 +195,7 @@ namespace QuestsExtended.Patches
                 {
                     foreach (var cond in condDict.Value)
                     {
-                        if (CompletedSaveData.CompletedMultipleChoice.Contains(__instance.Id)) continue;
+                        if (CorrectPlayerSaveData.CompletedMultipleChoice.Contains(__instance.Id)) continue;
                         foreach (var quest in Plugin.Quests)
                         {
                             if (quest.Value.IsMultipleChoiceStarter)
@@ -111,9 +207,37 @@ namespace QuestsExtended.Patches
                                         if (overrideCond.QuestsToStart != null && !overrideCond.IsFail)
                                         {
                                             Plugin.Log.LogInfo("Probably got a condition that's meant to start multiple quests, running through the OCC.");
-                                            OptionalConditionController.DirectHandleQuestStartingConditionCompletion(quest.Value.QuestId, overrideCond);
-                                            return;
-                                        } 
+                                            QuestExtendedController _questController = null;
+                                            if (Plugin.PlayerInRaid)
+                                            {
+                                                foreach (QuestExtendedController QEC in Singleton<GameWorld>.Instance.gameObject.GetComponents<QuestExtendedController>())
+                                                {
+                                                    if (QEC.LocalPlayerID == Plugin.PlayerProfileID)
+                                                    {
+                                                        _questController = QEC;
+                                                        break;
+                                                    }
+                                                }
+                                                if (_questController == null) { Plugin.Log.LogError("QEC null, aborting (Patch: BSGWHYISYOURCODELIKETHIS. Section 1. In raid."); return; }
+                                                _questController._optionalController.DirectHandleQuestStartingConditionCompletion(quest.Value.QuestId, overrideCond);
+                                                return;
+                                            }
+                                            else
+                                            {
+                                                
+                                                foreach (QuestExtendedController QEC in MenuUI.Instance.gameObject.GetComponents<QuestExtendedController>())
+                                                {
+                                                    if (QEC.LocalPlayerID == Plugin.PlayerProfileID)
+                                                    {
+                                                        _questController = QEC;
+                                                        break;
+                                                    }
+                                                }
+                                                if (_questController == null) { Plugin.Log.LogError("QEC null, aborting (Patch: BSGWHYISYOURCODELIKETHIS. Section 1. In main menu."); return; }
+                                                _questController._optionalController.DirectHandleQuestStartingConditionCompletion(quest.Value.QuestId, overrideCond);
+                                                return;
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -123,13 +247,13 @@ namespace QuestsExtended.Patches
             }
             else if (status == EQuestStatus.Started && __instance.QuestStatus == status && __instance.CompletedConditions != null)
             {
-                Plugin.Log.LogInfo("This quest is not completed, but has a comleted condition. Let's check those conditions to see if they are Quest Starters.");
+                Plugin.Log.LogInfo("This quest is not completed, but has a completed condition. Let's check those conditions to see if they are Quest Starters.");
                 foreach (var condDict in __instance.Conditions)
                 {
                     foreach (var cond in condDict.Value)
                     {
                         if (!__instance.CompletedConditions.Contains(cond.id)) continue;
-                        if (CompletedSaveData.CompletedMultipleChoice.Contains(__instance.Id)) continue;
+                        if (CorrectPlayerSaveData.CompletedMultipleChoice.Contains(__instance.Id)) continue;
                         foreach (var quest in Plugin.Quests)
                         {
                             if (quest.Value.IsMultipleChoiceStarter)
@@ -141,8 +265,36 @@ namespace QuestsExtended.Patches
                                         if (overrideCond.QuestsToStart != null && !overrideCond.IsFail)
                                         {
                                             Plugin.Log.LogInfo("Probably got a condition that's meant to start multiple quests, running through the OCC.");
-                                            OptionalConditionController.DirectHandleQuestStartingConditionCompletion(quest.Value.QuestId, overrideCond);
-                                            return;
+                                            QuestExtendedController _questController = null;
+                                            if (Plugin.PlayerInRaid)
+                                            {
+                                                foreach (QuestExtendedController QEC in Singleton<GameWorld>.Instance.gameObject.GetComponents<QuestExtendedController>())
+                                                {
+                                                    if (QEC.LocalPlayerID == Plugin.PlayerProfileID)
+                                                    {
+                                                        _questController = QEC;
+                                                        break;
+                                                    }
+                                                }
+                                                if (_questController == null) { Plugin.Log.LogError("QEC null, aborting (Patch: BSGWHYISYOURCODELIKETHIS. Section 2. In raid."); return; }
+                                                _questController._optionalController.DirectHandleQuestStartingConditionCompletion(quest.Value.QuestId, overrideCond);
+                                                return;
+                                            }
+                                            else
+                                            {
+
+                                                foreach (QuestExtendedController QEC in MenuUI.Instance.gameObject.GetComponents<QuestExtendedController>())
+                                                {
+                                                    if (QEC.LocalPlayerID == Plugin.PlayerProfileID)
+                                                    {
+                                                        _questController = QEC;
+                                                        break;
+                                                    }
+                                                }
+                                                if (_questController == null) { Plugin.Log.LogError("QEC null, aborting (Patch: BSGWHYISYOURCODELIKETHIS. Section 2. In main menu."); return; }
+                                                _questController._optionalController.DirectHandleQuestStartingConditionCompletion(quest.Value.QuestId, overrideCond);
+                                                return;
+                                            }
                                         }
                                     }
                                 }
@@ -158,7 +310,7 @@ namespace QuestsExtended.Patches
                 {
                     foreach (var cond in condDict.Value)
                     {
-                        if (CompletedSaveData.CompletedMultipleChoice.Contains(__instance.Id)) continue;
+                        if (CorrectPlayerSaveData.CompletedMultipleChoice.Contains(__instance.Id)) continue;
                         foreach (var quest in Plugin.Quests)
                         {
                             if (quest.Value.IsMultipleChoiceStarter)
@@ -168,8 +320,36 @@ namespace QuestsExtended.Patches
                                     if (overrideCond.ConditionId == cond.id && overrideCond.QuestsToStart != null && overrideCond.IsFail)
                                     {
                                         Plugin.Log.LogInfo("Ooooo, a fail condition that starts a quest! How exciting. Running through the OCC.");
-                                        OptionalConditionController.DirectHandleQuestStartingConditionCompletion(quest.Value.QuestId, overrideCond);
-                                        return;
+                                        QuestExtendedController _questController = null;
+                                        if (Plugin.PlayerInRaid)
+                                        {
+                                            foreach (QuestExtendedController QEC in Singleton<GameWorld>.Instance.gameObject.GetComponents<QuestExtendedController>())
+                                            {
+                                                if (QEC.LocalPlayerID == Plugin.PlayerProfileID)
+                                                {
+                                                    _questController = QEC;
+                                                    break;
+                                                }
+                                            }
+                                            if (_questController == null) { Plugin.Log.LogError("QEC null, aborting (Patch: BSGWHYISYOURCODELIKETHIS. Section 3. In raid."); return; }
+                                            _questController._optionalController.DirectHandleQuestStartingConditionCompletion(quest.Value.QuestId, overrideCond);
+                                            return;
+                                        }
+                                        else
+                                        {
+
+                                            foreach (QuestExtendedController QEC in MenuUI.Instance.gameObject.GetComponents<QuestExtendedController>())
+                                            {
+                                                if (QEC.LocalPlayerID == Plugin.PlayerProfileID)
+                                                {
+                                                    _questController = QEC;
+                                                    break;
+                                                }
+                                            }
+                                            if (_questController == null) { Plugin.Log.LogError("QEC null, aborting (Patch: BSGWHYISYOURCODELIKETHIS. Section 3. In main menu."); return; }
+                                            _questController._optionalController.DirectHandleQuestStartingConditionCompletion(quest.Value.QuestId, overrideCond);
+                                            return;
+                                        }
                                     }
                                 }
                             }

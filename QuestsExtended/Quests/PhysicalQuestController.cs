@@ -18,40 +18,41 @@ namespace QuestsExtended.Quests;
 
 internal class PhysicalQuestController : AbstractCustomQuestController
 {
-    public static BasePhysicalClass _physical;
-    private static Vector3 _playerPos;
-    public static MovementContext _movementContext;
-    public static PedometerClass _pedometer;
+    public BasePhysicalClass _physical;
+    public Vector3 _playerPos;
+    public MovementContext _movementContext;
+    public PedometerClass _pedometer;
 
-    private static bool isEcumbered;
-    private static bool isEcumberedRunning;
-    private static bool isOverEncumbered;
-    private static bool isOverEncumberedRunning;
+    public bool isEcumbered;
+    public bool isEcumberedRunning;
+    public bool isOverEncumbered;
+    public bool isOverEncumberedRunning;
     
     //Things added by Light
     //bools (no timers)
-    public static bool isCrouched = false;
-    public static bool isProne = false;
-    public static bool isSilent = false;
-    public static bool isMounted = false;
-    public static bool isADS = false;
-    public static bool isBlindFiring = false;
-    public static bool isRunning = false;
+    public bool isCrouched = false;
+    public bool isProne = false;
+    public bool isSilent = false;
+    public bool isMounted = false;
+    public bool isADS = false;
+    public bool isBlindFiring = false;
+    public bool isRunning = false;
 
     //floats
-    private static float lastX;
-    private static float lastZ;
+    public float lastX;
+    public float lastZ;
+    public float movementXPTimer;
 
     //timers
-    private static bool PositionCheckDelay;
-    private static bool MovementXPCooldown = false;
+    public bool PositionCheckDelay;
+    public bool MovementXPCooldown = false;
 
     //float storage (I'm sorry CJ)
-    private static float _moveAllfloat;
-    private static float _moveRunfloat;
-    private static float _moveCrouchedfloat;
-    private static float _moveProneFloat;
-    private static float _moveSilentFloat;
+    public float _moveAllfloat;
+    public float _moveRunfloat;
+    public float _moveCrouchedfloat;
+    public float _moveProneFloat;
+    public float _moveSilentFloat;
 
     
     //Debug things
@@ -66,10 +67,20 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         foreach (var person in Singleton<GameWorld>.Instance.AllAlivePlayersList)
         {
             if (person.IsAI) continue;
-            _physical = person.Physical;
-            _pedometer = person.Pedometer;
-            _movementContext = person.MovementContext;
-            break;
+            if (person.Side == EPlayerSide.Savage)
+            {
+                Plugin.Log.LogInfo("No need to attatch QE to a scav raid, aborting.");
+                _player = null;
+                return;
+            }
+            if (person.Profile.ProfileId == Plugin.PlayerProfileID)
+            {
+                _physical = person.Physical;
+                _pedometer = person.Pedometer;
+                _movementContext = person.MovementContext;
+                Plugin.Log.LogInfo($"DEBUG: We have just attatched a PhysicalHealthController to {person.Profile.Nickname}");
+                break;
+            }
         }
         /*
         _physical = Singleton<GameWorld>.Instance.MainPlayer.Physical;
@@ -114,6 +125,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
     {
         if (isRaidOver) return;
         if (_physical == null || _movementContext == null || _playerPos == null) return;
+        movementXPTimer -= Time.deltaTime;
         if (isEcumbered && !isEcumberedRunning)
             StaticManager.BeginCoroutine(EncumberedTimer());
         
@@ -123,9 +135,11 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         /*if (_playerPos != null && !MovementXPCooldown)
             BeginMovementIncrement();*/
 
-        if (!MovementXPCooldown)
+        if (movementXPTimer <0)
+        {
+            movementXPTimer = 5;
             BeginMovementIncrement();
-
+        }
         //Debug below this line
         /*
         if (_movementContext != null && !MovementDebugTimer)
@@ -139,7 +153,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         isRunning = _physical.Sprinting;
     }
 
-    private static void SetEncumbered(bool encumbered)
+    private void SetEncumbered(bool encumbered)
     {
         if (isRaidOver) return;
         isEcumbered = encumbered;
@@ -149,7 +163,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         StaticManager.BeginCoroutine(EncumberedTimer());
     }
     
-    private static void SetOverEncumbered(bool encumbered)
+    private void SetOverEncumbered(bool encumbered)
     {
         if (isRaidOver) return;
         isOverEncumbered = encumbered;
@@ -159,7 +173,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         StaticManager.BeginCoroutine(OverEncumberedTimer());
     }
     public static string LastPose = "Default";
-    private static void SetPose(int pose)
+    private void SetPose(int pose)
     {
         if (isRaidOver) return;
         if (_movementContext.IsInPronePose && isCrouched)
@@ -205,7 +219,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         else isCrouched= false;
     }
 
-    private static void SetClampedSpeed ()
+    private void SetClampedSpeed ()
     {
         if (isRaidOver) return;
         //Plugin.Log.LogWarning("OnCharacterControllerSpeedLimitChanged was triggered");
@@ -218,7 +232,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         }
         else { isSilent = false; /*ProgressMovementQuests(CalculateDistance(), CheckForPose(), false);*/ /*Plugin.Log.LogWarning("Player is NO LONGER acheiving covert movement");*/ }
     }
-    private static IEnumerator EncumberedTimer()
+    private IEnumerator EncumberedTimer()
     {
         var conditions = _questController.GetActiveConditions(EQuestConditionGen.EncumberedTimeInSeconds);
         
@@ -238,7 +252,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         
         isEcumberedRunning = false;
     }
-    private static IEnumerator DistanceTracker()
+    private IEnumerator DistanceTracker()
     {
         MovementXPCooldown = true;
         PositionCheckDelay= true;
@@ -252,15 +266,13 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         PositionCheckDelay= false;
     }
 
-    private static void BeginMovementIncrement()
+    private void BeginMovementIncrement()
     {
-        MovementXPCooldown = true;
         //Plugin.Log.LogInfo("Progressing movement");
         ProgressMovementQuests();
-        StaticManager.BeginCoroutine(MovementCooldown());
     }
 
-    public static void ProcessMovement (float num, EPlayerState state)
+    public void ProcessMovement (float num, EPlayerState state)
     {
         _moveAllfloat += num;
         switch (state)
@@ -280,7 +292,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         }
     }
 
-    private static int SprintDistance(float distance)
+    private int SprintDistance(float distance)
     {
         if (isRaidOver) return 0;
         int distanceToInt = (int)Math.Round(distance, 0);
@@ -374,20 +386,28 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         return distanceToInt;
     }
     */
-    private static bool CheckForPose()
+    private bool CheckForPose()
     {
         if (!isCrouched && isProne) return true;
         else return false;
     }
     private static void ProgressMovementQuests()
     {
-        ProgressMoveAll();
-        ProgressMoveCrouched();
-        ProgressMoveProne();
-        ProgressMoveSilent();
-        ProgressMoveSprint();
+        foreach (QuestExtendedController QEC in Singleton<GameWorld>.Instance.gameObject.GetComponents<QuestExtendedController>())
+        {
+            if (QEC.LocalPlayerID == Plugin.PlayerProfileID)
+            {
+                QEC._physicalController.ProgressMoveAll();
+                QEC._physicalController.ProgressMoveCrouched();
+                QEC._physicalController.ProgressMoveProne();
+                QEC._physicalController.ProgressMoveSilent();
+                QEC._physicalController.ProgressMoveSprint();
+                break;
+            }
+        }
+
     }
-    private static void ProgressMoveAll()
+    private void ProgressMoveAll()
     {
         var conditions = _questController.GetActiveConditions(EQuestConditionGen.MoveDistance);
         foreach (var cond in conditions)
@@ -397,7 +417,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         }
         _moveAllfloat = 0;
     }
-    private static void ProgressMoveCrouched()
+    private void ProgressMoveCrouched()
     {
         var conditions = _questController.GetActiveConditions(EQuestConditionGen.MoveDistanceWhileCrouched);
         foreach (var cond in conditions)
@@ -407,7 +427,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         }
         _moveCrouchedfloat = 0;
     }
-    private static void ProgressMoveProne()
+    private void ProgressMoveProne()
     {
         var conditions = _questController.GetActiveConditions(EQuestConditionGen.MoveDistanceWhileProne);
         foreach (var cond in conditions)
@@ -417,7 +437,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         }
         _moveProneFloat = 0;
     }
-    private static void ProgressMoveSilent()
+    private void ProgressMoveSilent()
     {
         var conditions = _questController.GetActiveConditions(EQuestConditionGen.MoveDistanceWhileSilent);
         foreach (var cond in conditions)
@@ -427,7 +447,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         }
         _moveSilentFloat = 0;
     }
-    private static void ProgressMoveSprint()
+    private void ProgressMoveSprint()
     {
         var conditions = _questController.GetActiveConditions(EQuestConditionGen.MoveDistanceWhileRunning);
         foreach (var cond in conditions)
@@ -437,7 +457,7 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         }
         _moveRunfloat = 0;
     }
-    private static void ProgressMovementQuests(int distance, bool Standing, bool Silent)
+    private void ProgressMovementQuests(int distance, bool Standing, bool Silent)
     {
         if (isRaidOver) return;
         if (MovementXPCooldown) return;
@@ -476,9 +496,8 @@ internal class PhysicalQuestController : AbstractCustomQuestController
             //Plugin.Log.LogWarning($"Incrementing condition: {cond} by {distance}");
             IncrementCondition(cond, distance);
         }
-        StaticManager.BeginCoroutine(MovementCooldown());
     }
-    private static IEnumerator OverEncumberedTimer()
+    private IEnumerator OverEncumberedTimer()
     {
         var conditions = _questController.GetActiveConditions(EQuestConditionGen.OverEncumberedTimeInSeconds);
 
@@ -497,14 +516,6 @@ internal class PhysicalQuestController : AbstractCustomQuestController
         }
         
         isOverEncumberedRunning = false;
-    }
-
-    private static IEnumerator MovementCooldown()
-    {
-        MovementXPCooldown = true;
-        yield return new WaitForSeconds(2f);
-        //Plugin.Log.LogInfo("Cooldown off");
-        MovementXPCooldown = false;
     }
 
     /*

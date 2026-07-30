@@ -1,4 +1,5 @@
-﻿using System;
+﻿extern alias Brains;
+using System;
 using System.Collections.Generic;
 using EFT;
 using JetBrains.Annotations;

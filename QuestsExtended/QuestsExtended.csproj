@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net471</TargetFramework>
+        <TargetFramework>net472</TargetFramework>
         <AssemblyName>QuestsExtended</AssemblyName>
         <Description>New Quest Conditions!</Description>
         <Version>1.0.0</Version>
@@ -53,6 +53,30 @@
         <Reference Include="Sirenix.Serialization">
             <HintPath>..\..\..\EscapeFromTarkov_Data\managed\Sirenix.Serialization.dll</HintPath>
         </Reference>
+        <Reference Include="SPT.Server">
+          <HintPath>..\..\..\SPT\SPT.Server.dll</HintPath>
+        </Reference>
+        <Reference Include="SPTarkov.Common">
+          <HintPath>..\..\..\SPT\SPTarkov.Common.dll</HintPath>
+        </Reference>
+        <Reference Include="SPTarkov.DI">
+          <HintPath>..\..\..\SPT\SPTarkov.DI.dll</HintPath>
+        </Reference>
+        <Reference Include="SPTarkov.Reflection">
+          <HintPath>..\..\..\SPT\SPTarkov.Reflection.dll</HintPath>
+        </Reference>
+        <Reference Include="SPTarkov.Server.Assets">
+          <HintPath>..\..\..\SPT\SPTarkov.Server.Assets.dll</HintPath>
+        </Reference>
+        <Reference Include="SPTarkov.Server.Core">
+          <HintPath>..\..\..\SPT\SPTarkov.Server.Core.dll</HintPath>
+        </Reference>
+        <Reference Include="SPTarkov.Server.Web">
+          <HintPath>..\..\..\SPT\SPTarkov.Server.Web.dll</HintPath>
+        </Reference>
+        <Reference Include="System.IO.Hashing">
+          <HintPath>..\..\..\SPT\System.IO.Hashing.dll</HintPath>
+        </Reference>
         <Reference Include="Unity.TextMeshPro">
             <HintPath>..\..\..\EscapeFromTarkov_Data\managed\Unity.TextMeshPro.dll</HintPath>
         </Reference>
@@ -72,7 +96,7 @@
             <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.AudioModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.CoreModule">
-            <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.CoreModule.dll</HintPath>
+          <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.CoreModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.IMGUIModule">
             <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.IMGUIModule.dll</HintPath>
@@ -86,6 +110,9 @@
         <Reference Include="UnityEngine.AnimationModule">
             <HintPath>..\..\..\EscapeFromTarkov_Data\managed\UnityEngine.AnimationModule.dll</HintPath>
         </Reference>
+        <PackageReference Include="FastCloner" Version="3.3.16" />
+        <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" Aliases="Brains" />
+        <PackageReference Include="SemanticVersioning" Version="3.0.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -94,7 +121,7 @@
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="copy &quot;$(TargetPath)&quot; &quot;..\..\..\BepInEx\plugins\QuestsExtended\$(TargetName).dll&quot;&#xA;if $(ConfigurationName) == Debug (&#xA;    copy &quot;$(ProjectDir)$(OutDir)$(TargetName).pdb&quot; &quot;..\..\..\BepInEx\plugins\QuestsExtended\$(TargetName).pdb&quot;&#xA;) else (&#xA;    del &quot;..\..\..\BepInEx\plugins\QuestsExtended\$(TargetName).pdb&quot;&#xA;)&#xA;&#xA;del &quot;..\..\..\BepInEx\config\com.dirtbikercj.QuestsExtended.cfg&quot;" />
+      <Exec Command="copy &quot;$(TargetPath)&quot; &quot;..\..\..\BepInEx\plugins\QuestsExtended\$(TargetName).dll&quot;&#xA;if $(ConfigurationName) == Debug (&#xA;    copy &quot;$(ProjectDir)$(OutDir)$(TargetName).pdb&quot; &quot;..\..\..\BepInEx\plugins\QuestsExtended\$(TargetName).pdb&quot;&#xA;) else (&#xA;    del &quot;..\..\..\BepInEx\plugins\QuestsExtended\$(TargetName).pdb&quot;&#xA;)&#xA;&#xA;del &quot;..\..\..\BepInEx\config\com.dirtbikercjandlotw.QuestsExtended.cfg&quot;" />
     </Target>
     
 </Project>

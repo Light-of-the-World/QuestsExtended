@@ -1,19 +1,25 @@
-﻿using System.Collections.Generic;
-using Comfort.Common;
+﻿using Comfort.Common;
 using EFT;
 using QuestsExtended.Models;
+using SPT.Reflection.Utils;
+using SPTarkov.Server.Core.Models.Enums;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace QuestsExtended.Quests;
 
 internal abstract class AbstractCustomQuestController
 {
-    protected static QuestExtendedController _questController;
+    public QuestExtendedController _questController;
     public static Player _player;
     public static bool isRaidOver = true;
     public static bool ShowResetMessage = false;
     public static bool ShowSpecialResetMessage = false;
     public static bool ResetMainMenu = false;
+    public static bool hasResetWithoutQuestAccept = false;
+    public static bool isScavRaid = false;
+    public static List<string> QuestsToResetAFS = new List<string>();
+    public static bool wipeData = false;
 
     protected AbstractCustomQuestController(QuestExtendedController questExtendedController)
     {
@@ -23,8 +29,18 @@ internal abstract class AbstractCustomQuestController
             foreach (var person in Singleton<GameWorld>.Instance.AllAlivePlayersList)
             {
                 if (person.IsAI) continue;
-                _player = person;
-                break;
+                if (person.Side == EPlayerSide.Savage)
+                {
+                    Plugin.Log.LogInfo("(Abstract) No need to attatch QE to a scav raid, aborting.");
+                    isScavRaid = true;
+                    _player = null;
+                }
+                else isScavRaid = false;
+                if (person.Profile.ProfileId == ClientAppUtils.GetClientApp().GetClientBackEndSession().Profile.ProfileId)
+                {
+                    _player = person;
+                    break;
+                }
                 //We made a change here, watch for breaks.
             }
             //_player = Singleton<GameWorld>.Instance.MainPlayer;
@@ -56,8 +72,9 @@ internal abstract class AbstractCustomQuestController
     /// </summary>
     /// <param name="conditions"></param>
     /// /// <param name="value"></param>
-    protected static void IncrementConditions(List<ConditionPair> conditions, float value = 0f)
+    protected void IncrementConditions(List<ConditionPair> conditions, float value = 0f)
     {
+
         foreach (var condition in conditions)
         {
             _questController.IncrementConditionCounter(condition.Quest, condition.Condition, value);
@@ -69,7 +86,7 @@ internal abstract class AbstractCustomQuestController
     /// </summary>
     /// <param name="condition"></param>
     /// <param name="value"></param>
-    protected static void IncrementCondition(ConditionPair condition, float value = 0f)
+    protected void IncrementCondition(ConditionPair condition, float value = 0f)
     {
         if (condition.CustomCondition.Zones != null)
         {

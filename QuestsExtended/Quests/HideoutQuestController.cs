@@ -19,8 +19,13 @@ namespace QuestsExtended.Quests
             Plugin.Log.LogInfo("Created a HideoutQuestController. We are ready to add code here.");
         }
 
-        public static void CollectItemFromHideout(EAreaType eArea)
+        public void CollectItemFromHideout(EAreaType eArea)
         {
+            Plugin.Log.LogInfo("We are in CollectItemFromHideout, running loggers...");
+            if (_questController == null)
+            {
+                Plugin.Log.LogError("We are missing a quest controller! Stopping method."); return;
+            }
             EQuestConditionHideout conditionsToAdd = EQuestConditionHideout.CraftAnyItem;
             var conditions = _questController.GetActiveConditions(conditionsToAdd);
             foreach (var cond in conditions)
@@ -54,15 +59,20 @@ namespace QuestsExtended.Quests
                             IncrementCondition(cond, 1);
                             break;
                         }
+                        else if (name.ToLower() == "watercollector" && eArea == EAreaType.WaterCollector)
+                        {
+                            IncrementCondition(cond, 1);
+                            break;
+                        }
                     }
                 }
                 else
                 IncrementCondition(cond, 1);
             }
-            Plugin.Log.LogInfo($"Test run. We just collected an item from {eArea}, and reached the end of CollectItemFromHideout.");
+            //Plugin.Log.LogInfo($"Test run. We just collected an item from {eArea}, and reached the end of CollectItemFromHideout.");
         }
 
-        public static void CollectCyclicItemFromHideout (EAreaType eArea)
+        public void CollectCyclicItemFromHideout (EAreaType eArea)
         {
             EQuestConditionHideout conditionsToAdd = EQuestConditionHideout.CraftCyclicItem;
             var conditions = _questController.GetActiveConditions(conditionsToAdd);
@@ -77,15 +87,30 @@ namespace QuestsExtended.Quests
                             IncrementCondition(cond, 1);
                             break;
                         }
+                        else if (name.ToLower() == "bitcoinfarm" && eArea == EAreaType.BitcoinFarm)
+                        {
+                            IncrementCondition(cond, 1);
+                            break;
+                        }
+                        else if (name.ToLower() == "boozegenerator" && eArea == EAreaType.BoozeGenerator)
+                        {
+                            IncrementCondition(cond, 1);
+                            break;
+                        }
+                        else if (name.ToLower() == "watercollector" && eArea == EAreaType.WaterCollector)
+                        {
+                            IncrementCondition(cond, 1);
+                            break;
+                        }
                     }
                 }
                 else
                 IncrementCondition(cond, 1);
             }
-            Plugin.Log.LogInfo($"Test run. We just collected an item from {eArea}, and reached the end of CollectCyclicItemFromHideout.");
+            //Plugin.Log.LogInfo($"Test run. We just collected an item from {eArea}, and reached the end of CollectCyclicItemFromHideout.");
         }
 
-        public static void CollectScavOrCultist (EAreaType eArea)
+        public void CollectScavOrCultist (EAreaType eArea)
         {
             EQuestConditionHideout conditionsToAdd = EQuestConditionHideout.EmptyHI;
             if (eArea == EAreaType.ScavCase) conditionsToAdd = EQuestConditionHideout.CollectScavCase;
@@ -94,12 +119,12 @@ namespace QuestsExtended.Quests
             var conditions = _questController.GetActiveConditions(conditionsToAdd);
             foreach (var cond in conditions)
             {
-                IncrementCondition (cond, 1);
+                IncrementCondition(cond, 1);
             }
             Plugin.Log.LogInfo($"Test run. We just collected an item from {eArea}, and reached the end of CollectScavOrCultist.");
         }
 
-        public static void PlayerDidWorkout()
+        public void PlayerDidWorkout()
         {
             EQuestConditionHideout conditionsToAdd = EQuestConditionHideout.CompleteWorkout;
             var conditions = _questController.GetActiveConditions(conditionsToAdd);
@@ -107,7 +132,7 @@ namespace QuestsExtended.Quests
             {
                 IncrementCondition(cond, 1);
             }
-            Plugin.Log.LogInfo("Test run. Reached the end of CompleteWorkout without errors");
+            //Plugin.Log.LogInfo("Test run. Reached the end of CompleteWorkout without errors");
         }
     }
 }

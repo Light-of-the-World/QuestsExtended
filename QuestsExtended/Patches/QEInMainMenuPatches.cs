@@ -1,26 +1,27 @@
-﻿using System.Reflection;
-using System.Security.Policy;
+﻿using Comfort.Common;
 using EFT;
+using EFT.HealthSystem;
 using EFT.Interactive;
+using EFT.InventoryLogic;
 using EFT.Quests;
+using EFT.UI;
+using GPUInstancer;
 using HarmonyLib;
 using QuestsExtended.Quests;
+using QuestsExtended.SaveLoadRelatedClasses;
 using QuestsExtended.Utils;
 using SPT.Reflection.Patching;
-using UnityEngine;
-using QuestsExtended.SaveLoadRelatedClasses;
 using SPT.Reflection.Utils;
-using EFT.UI;
-using EFT.HealthSystem;
-using EFT.InventoryLogic;
-using Comfort.Common;
+using System;
 using System.Collections.Generic;
-using TMPro;
+using System.Globalization;
+using System.Linq;
+using System.Reflection;
+using System.Security.Policy;
 using System.Text.RegularExpressions;
 using System.Xml;
-using System;
-using System.Globalization;
-using System.Runtime.Remoting.Lifetime;
+using TMPro;
+using UnityEngine;
 
 namespace QuestsExtended.Patches
 {
@@ -40,21 +41,55 @@ namespace QuestsExtended.Patches
             }
             Plugin.Log.LogInfo($"(QE) Checking for QEC (trader screen).");
             MenuUI menuUI = MenuUI.Instance;
-            if (menuUI.GetComponent<QuestExtendedController>() != null)
+            if (menuUI.gameObject.GetComponents<QuestExtendedController>().Length != 0)
             {
-                Plugin.Log.LogInfo("(QE) Controller already exists");
+                Plugin.Log.LogInfo($"(QE) A Controller already exists. Double checking if our player has one. Current controllers: {menuUI.gameObject.GetComponents<QuestExtendedController>().Length}");
+                QuestExtendedController _questController = null;
+                foreach (QuestExtendedController QEC in menuUI.gameObject.GetComponents<QuestExtendedController>())
+                {
+                    if (QEC.LocalPlayerID == Plugin.PlayerProfileID)
+                    {
+                        _questController = QEC;
+                        break;
+                    }
+                }
+                if (_questController == null)
+                {
+                    Plugin.Log.LogInfo("Our player does not have a QEC. Making a new one for them.");
+                    _questController = menuUI.gameObject.AddComponent<QuestExtendedController>();
+                    _questController.hasCompletedInitMM = true;
+                    _questController.isInMainMenu = true;
+                    AbstractQuestControllerClass sendingController = __instance.AbstractQuestControllerClass;
+                    //Plugin.Log.LogInfo("Running InitForMainMenu. Remove this logger before publishing.");
+                    _questController.InitFromMainMenu(sendingController);
+                    CompletedSaveData completedSaveData = menuUI.gameObject.AddComponent<CompletedSaveData>();
+                    completedSaveData.init(false);
+                    _questController._optionalController.saveData = completedSaveData;
+                    Plugin.Log.LogInfo($"(QE) Quest Controller created by TradingScreen.");
+                }
+                else Plugin.Log.LogInfo("Controller exists for our player, all good. Checking save data.");
+                //if (_questController._optionalController.saveData != menuUI.GetComponent<CompletedSaveData>())
+                if (!menuUI.gameObject.GetComponents<CompletedSaveData>().Contains<CompletedSaveData>(_questController._optionalController.saveData))
+                {
+                    Plugin.Log.LogInfo("SaveData missing or incorrect, creating now");
+                    _questController._optionalController.saveData = menuUI.GetOrAddComponent<CompletedSaveData>();
+                    if (!_questController._optionalController.saveData.hasDoneInit) _questController._optionalController.saveData.init(false);
+                }
+                else Plugin.Log.LogInfo("All good.");
             }
-            QuestExtendedController controller = menuUI.GetOrAddComponent<QuestExtendedController>();
-            if (controller.hasCompletedInitMM == false)
+            else
             {
+                Plugin.Log.LogInfo("No controllers exist. Creating one now.");
+                QuestExtendedController controller = menuUI.gameObject.AddComponent<QuestExtendedController>();
                 controller.hasCompletedInitMM = true;
-                QuestExtendedController.isInMainMenu = true;
+                controller.isInMainMenu = true;
                 AbstractQuestControllerClass sendingController = __instance.AbstractQuestControllerClass;
                 //Plugin.Log.LogInfo("Running InitForMainMenu. Remove this logger before publishing.");
                 controller.InitFromMainMenu(sendingController);
-                CompletedSaveData completedSaveData = menuUI.GetOrAddComponent<CompletedSaveData>();
-                completedSaveData.init();
-                OptionalConditionController.saveData = completedSaveData;
+                Plugin.Log.LogInfo("Making save data...");
+                CompletedSaveData completedSaveData = menuUI.gameObject.AddComponent<CompletedSaveData>();
+                completedSaveData.init(false);
+                controller._optionalController.saveData = completedSaveData;
                 Plugin.Log.LogInfo($"(QE) Quest Controller created by TradingScreen.");
             }
         }
@@ -71,7 +106,7 @@ namespace QuestsExtended.Patches
             {
                 if (AbstractCustomQuestController.ResetMainMenu)
                 {
-                    Plugin.Log.LogInfo($"Header text is {__instance.HeaderText}");
+                    //Plugin.Log.LogInfo($"Header text is {__instance.HeaderText}");
                     if (__instance.HeaderText.ToLower() == "ok")
                     OptionalConditionController.ResetMainMenuForQE();
                 }
@@ -123,6 +158,7 @@ namespace QuestsExtended.Patches
         {
             try
             {
+                MenuUI menuUI = MenuUI.Instance;
                 TraderClass traderClass = (TraderClass)AccessTools.Field(__instance.GetType(), "traderClass_1").GetValue(__instance);
                 if (traderClass.Id == "6617beeaa9cfa777ca915b7c") { Plugin.Log.LogInfo("No transaction support for Ref at this time."); return; }
                 TMP_Text[] money = (TMP_Text[])AccessTools.Field(__instance.GetType(), "_equivalentSumValue").GetValue(__instance);
@@ -147,8 +183,18 @@ namespace QuestsExtended.Patches
                         currencyType = "USD";
                     }
                     //This works perfectly. We can create what we need to now.
-                    if (__instance.ETradeMode_0 == ETradeMode.Purchase) TradingQuestController.PurchaseMade(currency, currencyType, traderClass.Id);
-                    else if (__instance.ETradeMode_0 == ETradeMode.Sale) TradingQuestController.SaleMade(currency, currencyType, traderClass.Id);
+                    QuestExtendedController _questController = null;
+                    foreach (QuestExtendedController QEC in menuUI.gameObject.GetComponents<QuestExtendedController>())
+                    {
+                        if (QEC.LocalPlayerID == Plugin.PlayerProfileID)
+                        {
+                            _questController = QEC;
+                            break;
+                        }
+                    }
+                    if (_questController == null) { Plugin.Log.LogError("QEC null, aborting (Patch: QETransactionPatch)"); return; }
+                    if (__instance.ETradeMode_0 == ETradeMode.Purchase) _questController._tradingQuestController.PurchaseMade(currency, currencyType, traderClass.Id);
+                    else if (__instance.ETradeMode_0 == ETradeMode.Sale) _questController._tradingQuestController.SaleMade(currency, currencyType, traderClass.Id);
                 }
             }
             catch (Exception ex)
@@ -156,6 +202,29 @@ namespace QuestsExtended.Patches
                 Plugin.Log.LogError($"Error during Transaction: {ex}");
             }
 
+        }
+    }
+
+    internal class ResetAFSOnQuestAccept : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return AccessTools.Method(typeof(QuestView), nameof(QuestView.StartQuest));
+        }
+
+        [PatchPostfix]
+        private static void Postfix(QuestView __instance)
+        {
+            if (!AbstractCustomQuestController.QuestsToResetAFS.Contains(__instance.QuestId)) { /*Plugin.Log.LogInfo("wrong quest");*/ return; }
+            if (AbstractCustomQuestController.QuestsToResetAFS.Count != 0 && AbstractCustomQuestController.hasResetWithoutQuestAccept)
+            {
+                Plugin.Log.LogInfo("Resetting some quest AFSs.");
+                MenuUI ui = MenuUI.Instance;
+                QuestExtendedController QEC = ui.gameObject.GetComponent<QuestExtendedController>();
+                QEC._optionalController.RestoreAFSForQuests();
+            }
+            //else Plugin.Log.LogInfo("Right method, wrong time");
+            AbstractCustomQuestController.hasResetWithoutQuestAccept = false;
         }
     }
 
@@ -170,13 +239,28 @@ namespace QuestsExtended.Patches
         private static void Postfix(MainMenuControllerClass __instance)
         {
             Plugin.Log.LogInfo("MMCC.method_5 ran");
+            Plugin.TransitioningFromRaid = false;
             if (OptionalConditionController.mainMenuControllerClass != __instance) OptionalConditionController.mainMenuControllerClass = __instance;
-            if (!CompletedSaveData.hasScrubbedAFS)
+            if (AbstractCustomQuestController.wipeData)
             {
-                CompletedSaveData.hasScrubbedAFS = true;
-                CompletedSaveData.LoadQuestsThatWereStarted();
-                OptionalConditionController.RemoveAFSOnGameLaunch(CompletedSaveData.QuestsStartedByQE);
+                CompletedSaveData.WipeQEProfileData();
+                AbstractCustomQuestController.wipeData = false;
             }
+        }
+    }
+
+    internal class WipeQEDataOnNewCharacterPatch : ModulePatch
+    {
+        protected override MethodBase GetTargetMethod()
+        {
+            return AccessTools.Method(typeof(GClass2305), nameof(GClass2305.method_5));
+        }
+
+        [PatchPostfix]
+        private static void Postfix(GClass2305 __instance)
+        {
+            Plugin.Log.LogInfo("GClass2305.method_5 has triggered. Player is either creating a new profile, wiping, or prestiging. Deleting QE profile data when menu loads");
+            AbstractCustomQuestController.wipeData = true;
         }
     }
 
